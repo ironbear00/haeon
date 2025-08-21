@@ -14,19 +14,15 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@MappedSuperclass
 @Table(name = "person")
-public class Person extends BaseTimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public abstract class Person extends BaseTimeEntity {
 
     @Column(nullable = false, length = 100)
     private String name;
 
     private String phone;
     private LocalDate birthDate;
-    private LocalDate deathDate;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

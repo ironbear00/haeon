@@ -19,13 +19,10 @@ public class Deceased {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id", nullable = false)
-    private Person person;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_user_id", nullable = false)
     private User managerUser;
 
+    private LocalDate deathDate;
     private LocalDate funeralDate;
 }

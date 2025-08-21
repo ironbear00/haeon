@@ -1,5 +1,6 @@
 package com.example.demo.domain.requests;
 
+import com.example.demo.domain.Deceased;
 import com.example.demo.domain.User;
 import com.example.demo.domain.utils.BaseTimeEntity;
 import com.example.demo.domain.utils.SnsPlatform;
@@ -23,6 +24,10 @@ public class SnsRequest extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User requester;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deceased_id", nullable = false)
+    private Deceased deceased;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "platform_id", nullable = false)
