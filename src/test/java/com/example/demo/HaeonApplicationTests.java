@@ -1,13 +1,16 @@
 package com.example.demo;
 
+import com.example.demo.domain.Deceased;
 import com.example.demo.domain.utils.AuthProvider;
 import com.example.demo.domain.User;
+import com.example.demo.domain.utils.Gender;
 import com.example.demo.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
 import java.util.Random;
 
 @SpringBootTest
@@ -16,55 +19,43 @@ import java.util.Random;
 class HaeonApplicationTests {
 
     @Autowired
-    private PersonRepository personRepository;
-    @Autowired
     private UserRepository userRepository;
 
     private final Random random = new Random();
 
-    //create 100 person data
+    //Create one user
     @Test
-    public void insertDummyPersons(){
-        for (int i = 1; i <= 100; i++) {
-//            Person person = new Person();
+    public void insertDummyUsersWithDeceased() {
+        Random random = new Random();
 
-//            person.setName("Person" + i);
+        for (int i = 1; i <= 20; i++) {
+            User user = new User();
 
-//            person.setPhone(String.format("010-%04d-%04d", random.nextInt(10000), random.nextInt(10000)));
+            // Person 필드
+            user.setName("User" + i);
+            user.setBirthDate(LocalDate.of(1970 + random.nextInt(30), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+            user.setGender(Gender.values()[random.nextInt(Gender.values().length)]);
 
-            int year = 1930 + random.nextInt(76); // 1930~2005
-            int month = 1 + random.nextInt(12);
-            int day = 1 + random.nextInt(28);
-//            person.setBirthDate(LocalDate.of(year, month, day));
+            // User 필드
+            user.setEmail("user" + i + "@example.com");
+            user.setPassword("password" + i); // 실제 서비스면 암호화 필요
+            AuthProvider provider = AuthProvider.values()[random.nextInt(AuthProvider.values().length)];
+            user.setProvider(provider);
+            user.setProviderId(provider == AuthProvider.LOCAL ? null : provider.name() + "_id_" + i);
 
-            if (random.nextInt(100) < 20) {
-                int deathYear = year + 20 + random.nextInt(50); // 생년 이후 20~70년 사이
-                int deathMonth = 1 + random.nextInt(12);
-                int deathDay = 1 + random.nextInt(28);
-//                person.setDeathDate(LocalDate.of(deathYear, deathMonth, deathDay));
+            // 0~3명 Deceased 생성
+            int deceasedCount = random.nextInt(4);
+            for (int j = 1; j <= deceasedCount; j++) {
+                Deceased deceased = new Deceased();
+                deceased.setName("Deceased" + i + "_" + j);
+                deceased.setBirthDate(LocalDate.of(1930 + random.nextInt(30), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+                deceased.setDeathDate(LocalDate.of(2020 + random.nextInt(3), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+                deceased.setManagerUser(user); // 유족과 연결
+                user.getDeceasedList().add(deceased);
             }
 
-            int g = random.nextInt(3);
-//            person.setGender(g == 0 ? Gender.MALE : g == 1 ? Gender.FEMALE : Gender.OTHER);
-
-//            personRepository.save(person);
+            userRepository.save(user);
+            System.out.println("Created user: " + user.getEmail() + ", deceased count: " + user.getDeceasedList().size());
         }
-        System.out.println("Person 100명 모두 저장 완료!");
-    }
-
-    //Create one user also person too
-    @Test
-    public void insertUser(){
-        User user = new User();
-//        user.setPerson(person);
-        user.setEmail("testuser@example.com");
-        user.setPassword("암호화된패스워드"); // 암호화 필요
-        user.setProvider(AuthProvider.LOCAL);
-        user.setProviderId(null);
-
-        userRepository.save(user);
-
-//        System.out.println("Person ID: " + person.getId());
-        System.out.println("UserAccount ID: " + user.getId());
     }
 }

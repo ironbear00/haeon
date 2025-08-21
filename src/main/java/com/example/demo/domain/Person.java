@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-@Table(name = "person")
 public abstract class Person extends BaseTimeEntity {
 
     @Column(nullable = false, length = 100)
