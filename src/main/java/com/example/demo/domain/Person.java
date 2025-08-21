@@ -1,5 +1,7 @@
 package com.example.demo.domain;
 
+import com.example.demo.domain.utils.Gender;
+import com.example.demo.domain.utils.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

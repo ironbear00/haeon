@@ -1,18 +1,16 @@
 package com.example.demo;
 
-import com.example.demo.domain.AuthProvider;
-import com.example.demo.domain.Gender;
+import com.example.demo.domain.utils.AuthProvider;
+import com.example.demo.domain.utils.Gender;
 import com.example.demo.domain.Person;
 import com.example.demo.domain.User;
 import com.example.demo.repository.PersonRepository;
 import com.example.demo.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.util.Random;
 

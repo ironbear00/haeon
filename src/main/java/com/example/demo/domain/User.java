@@ -1,5 +1,6 @@
 package com.example.demo.domain;
 
+import com.example.demo.domain.utils.AuthProvider;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

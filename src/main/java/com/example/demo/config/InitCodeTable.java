@@ -1,9 +1,11 @@
 package com.example.demo.config;
 
-import com.example.demo.domain.Status;
+import com.example.demo.domain.utils.FileType;
+import com.example.demo.domain.utils.Status;
+import com.example.demo.repository.FileTypeRepository;
 import com.example.demo.repository.SnsPlatformRepository;
 import com.example.demo.repository.StatusRepository;
-import com.example.demo.domain.SnsPlatform;
+import com.example.demo.domain.utils.SnsPlatform;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class InitCodeTable {
 
-    //status code table initalization
+    //status code table initialization
     @Bean
     CommandLineRunner initStatus(StatusRepository statusRepository) {
         return args -> {
@@ -51,6 +53,28 @@ public class InitCodeTable {
                     platform.setName(p);
                     snsPlatformRepository.save(platform);
                     System.out.println("Platform 추가: " + p);
+                }
+            }
+        };
+    }
+
+    //initialization file type code table
+    @Bean
+    CommandLineRunner initFileType(FileTypeRepository fileTypeRepository) {
+        return args -> {
+            String[][] types = {
+                    {"DEATH_CERTIFICATE", "사망증명서"},
+                    {"APPLICANT_ID", "신청자 신분증"},
+                    {"RELATION_CERTIFICATION", "관계 증명서"},
+                    {"OTHER", "기타"}
+            };
+
+            for (String[] t : types) {
+                if (!fileTypeRepository.existsByCode(t[0])) {
+                    FileType ft = new FileType();
+                    ft.setCode(t[0]);
+                    ft.setName(t[1]);
+                    fileTypeRepository.save(ft);
                 }
             }
         };
