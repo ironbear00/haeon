@@ -33,9 +33,8 @@ public class SnsRequest extends BaseTimeEntity {
     @JoinColumn(name = "platform_id", nullable = false)
     private SnsPlatform snsPlatform;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id", nullable = false)
-    private Status status;
+    @Column(nullable = false, length = 50)
+    private String status = "SUBMITTED"; // 기본값
 
     @OneToMany(mappedBy = "snsRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestFile> files=new ArrayList<>();

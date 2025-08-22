@@ -1,4 +1,4 @@
-package com.example.demo.domain.requests;
+package com.example.demo.dto;
 
 import com.example.demo.domain.utils.Gender;                 // [수정]
 import lombok.AllArgsConstructor;

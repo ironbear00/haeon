@@ -3,6 +3,9 @@ package com.example.demo.service;
 
 import com.example.demo.domain.User;
 import com.example.demo.domain.utils.AuthProvider;
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.SignupRequest;
+import com.example.demo.dto.UserResponse;
 import com.example.demo.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -62,8 +65,15 @@ public class AuthService {
         return userRepository.findById((Long) id).orElse(null);
     }
 
-    // [추가] 로그아웃
-    public void logout(HttpSession session) {
-        session.invalidate();
+    public User authenticate(LoginRequest req) {
+        return null;
+    }
+
+    public UserResponse signup(SignupRequest req) {
+        return null;
+    }
+
+    public UserResponse getProfile(Long userId) {
+        return null;
     }
 }

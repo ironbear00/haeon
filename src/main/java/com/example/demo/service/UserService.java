@@ -1,9 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.domain.User;
-import com.example.demo.domain.requests.LoginRequest;                 // [수정] 로그인에 필요
-import com.example.demo.domain.requests.SignupRequest;
-import com.example.demo.domain.requests.UserResponse;
+import com.example.demo.dto.LoginRequest;                 // [수정] 로그인에 필요
+import com.example.demo.dto.SignupRequest;
+import com.example.demo.dto.UserResponse;
 import com.example.demo.domain.utils.AuthProvider;                   // [수정] provider 기본값 처리
 import com.example.demo.domain.utils.Gender;
 import com.example.demo.repository.UserRepository;

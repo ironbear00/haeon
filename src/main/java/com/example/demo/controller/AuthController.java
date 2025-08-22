@@ -1,10 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.domain.User;
-import com.example.demo.domain.requests.LoginRequest;
-import com.example.demo.domain.requests.SignupRequest;
-import com.example.demo.domain.requests.UserResponse;
-import com.example.demo.service.UserService;
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.SignupRequest;
+import com.example.demo.dto.UserResponse;
+import com.example.demo.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +15,9 @@ public class AuthController {
 
     public static final String SESSION_USER_ID = "LOGIN_USER_ID"; // [유지]
 
-    private final UserService userService;
+    private final AuthService userService;
 
-    public AuthController(UserService userService) { // [유지]
+    public AuthController(AuthService userService) { // [유지]
         this.userService = userService;
     }
 

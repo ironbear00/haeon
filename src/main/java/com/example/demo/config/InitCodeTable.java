@@ -2,9 +2,9 @@ package com.example.demo.config;
 
 import com.example.demo.domain.utils.FileType;
 import com.example.demo.domain.utils.Status;
-import com.example.demo.repository.FileTypeRepository;
-import com.example.demo.repository.SnsPlatformRepository;
-import com.example.demo.repository.StatusRepository;
+import com.example.demo.repository.utils.FileTypeRepository;
+import com.example.demo.repository.utils.SnsPlatformRepository;
+import com.example.demo.repository.utils.StatusRepository;
 import com.example.demo.domain.utils.SnsPlatform;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;

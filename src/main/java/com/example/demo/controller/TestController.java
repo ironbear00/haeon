@@ -1,8 +1,8 @@
 
 package com.example.demo.controller;
 
-import com.example.demo.domain.requests.UserResponse;
-import com.example.demo.service.UserService;
+import com.example.demo.dto.UserResponse;
+import com.example.demo.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +13,9 @@ import static com.example.demo.controller.AuthController.SESSION_USER_ID;
 @RequestMapping("/api")
 public class TestController {
 
-    private final UserService userService;
+    private final AuthService userService;
 
-    public TestController(UserService userService) {
+    public TestController(AuthService userService) {
         this.userService = userService;
     }
 
