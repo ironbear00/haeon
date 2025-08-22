@@ -14,20 +14,20 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 public abstract class BaseTimeEntity {
 
-    @Column(nullable = false, updatable=false)
+    @Column(name = "create_at", nullable = false, updatable = false) // [수정] 컬럼명 명시
     private LocalDateTime createAt;
 
-    @Column(nullable = false)
+    @Column(name = "update_at", nullable = false)                    // [수정] 컬럼명 명시
     private LocalDateTime updateAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createAt = LocalDateTime.now();
-        this.updateAt = LocalDateTime.now();
+        this.createAt = LocalDateTime.now(); // [유지]
+        this.updateAt = LocalDateTime.now(); // [유지]
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updateAt = LocalDateTime.now();
+        this.updateAt = LocalDateTime.now(); // [유지]
     }
 }

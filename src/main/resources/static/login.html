@@ -1,33 +1,135 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>로그인</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root { --brand:#4F46E5; --bg:#f7f7f9; --card:#ffffff; --border:#e6e6ef; --text:#111827; --muted:#6b7280; }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, sans-serif; background: var(--bg); color: var(--text); }
+        header, footer { background: var(--card); border-bottom:1px solid var(--border); padding:16px 20px; }
+        header h1 { margin:0; font-size:20px; }
+        main { max-width:420px; margin:40px auto; background:var(--card); padding:24px; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.05); }
+        h2 { margin:0 0 8px 0; }
+        form p { margin:12px 0; }
+        label { display:block; margin-bottom:6px; font-weight:600; }
+        input[type="email"], input[type="password"] { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
+        button[type="submit"] { width:100%; padding:12px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+        button[disabled]{ opacity:.6; cursor:not-allowed; }
+        .msg { margin-top:12px; font-size:14px; min-height:20px; }
+        .msg.error { color:#B91C1C; }
+        .msg.success { color:#065F46; }
+        .row { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+        .link { color:var(--brand); text-decoration:none; }
+    </style>
 </head>
+<body>
 <header>
-    <a href="main.html">
-        <h1>헤온🤝</h1>
+    <a href="main.html" style="text-decoration:none;color:inherit;">
+        <h1>헤온 🤝</h1>
     </a>
-    <h1>로그인</h1>
 </header>
 
 <main>
-    <form>
+    <h2>로그인</h2>
+    <form id="loginForm">
         <p>
-            <label for="username">아이디:</label>
-            <input type="text" id="username" name="username" placeholder="아이디를 입력하세요.">
+            <label for="email">이메일</label>
+            <input id="email" name="email" type="email" placeholder="이메일을 입력하세요" required autocomplete="email" />
         </p>
         <p>
-            <label for="password">비밀번호:</label>
-            <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요.">
+            <label for="password">비밀번호</label>
+            <input id="password" name="password" type="password" placeholder="비밀번호를 입력하세요" required autocomplete="current-password" />
         </p>
-        <button onclick="location.href='index.html'">로그인하기</button>
+        <button id="loginBtn" type="submit">로그인하기</button>
+        <div id="message" class="msg" aria-live="polite"></div>
     </form>
-    <p>계정이 없으신가요? <a href="signup.html">회원가입하기</a></p>
+
+    <div class="row">
+        <span class="muted">계정이 없으신가요?</span>
+        <a class="link" href="signup.html">회원가입하기</a>
+    </div>
 </main>
 
 <footer>
-    <p><a href="main.html">메인으로 돌아가기</a></p>
+    <p><a class="link" href="main.html">메인으로 돌아가기</a></p>
 </footer>
+
+<script>
+    // ✅ API 기본 경로
+    const API_BASE = "http://localhost:8080";     // [수정] 확실하게 지정
+    const LOGIN_ENDPOINT = API_BASE + "/api/auth/login";
+    const ME_ENDPOINT    = API_BASE + "/api/auth/me";
+    const REDIRECT_AFTER_LOGIN = "main.html";
+
+    // [수정] 오타 수정: documㅁent → document
+    const form = document.getElementById("loginForm");
+    const btn  = document.getElementById("loginBtn");
+    const msg  = document.getElementById("message");
+
+    function setMessage(text, type="error"){
+        msg.textContent = text;
+        msg.className = `msg ${type}`;
+    }
+
+    // 응답 바디 파싱
+    async function parseBodyOnce(res) {
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+            return await res.json();
+        } else {
+            const text = await res.text();
+            try { return JSON.parse(text); } catch { return { message: text }; }
+        }
+    }
+
+    async function login(email, password){
+        const res = await fetch(LOGIN_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",                      // [중요] 세션 쿠키 포함
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+            const data = await parseBodyOnce(res);
+            throw new Error(data.message || "로그인에 실패했습니다.");
+        }
+        return await parseBodyOnce(res);
+    }
+
+    async function fetchMe(){
+        const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+        if (!res.ok) return null;
+        return await parseBodyOnce(res);
+    }
+
+    form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        setMessage("", "");
+        btn.disabled = true;
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if(!email || !password){
+            setMessage("이메일과 비밀번호를 모두 입력하세요.");
+            btn.disabled = false;
+            return;
+        }
+
+        try{
+            await login(email, password);
+            await fetchMe();
+            setMessage("로그인 성공! 메인으로 이동 중...", "success");
+            window.location.href = REDIRECT_AFTER_LOGIN;
+        }catch(err){
+            setMessage("로그인 실패: " + (err?.message || "서버 오류"));
+        }finally{
+            btn.disabled = false;
+        }
+    });
+</script>
 </body>
 </html>

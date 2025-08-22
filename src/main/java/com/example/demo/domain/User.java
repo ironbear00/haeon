@@ -1,24 +1,26 @@
 package com.example.demo.domain;
 
 import com.example.demo.domain.utils.AuthProvider;
+import com.example.demo.domain.utils.AuthProviderAttributeConverter;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Entity
-@Table(name="users")
-public class User extends Person{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Table(name = "users")
+@AttributeOverrides({ // 상속 필드 컬럼명 매핑 (name/phone/birthDate/gender)
+        @AttributeOverride(name = "name",      column = @Column(name = "name",       nullable = false, length = 100)),
+        @AttributeOverride(name = "phone",     column = @Column(name = "phone",      length = 255)),
+        @AttributeOverride(name = "birthDate", column = @Column(name = "birth_date")),
+        @AttributeOverride(name = "gender",    column = @Column(name = "gender",     length = 16))
+})
+public class User extends Person {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true, length = 255)
@@ -27,22 +29,21 @@ public class User extends Person{
     @Column(length = 255)
     private String password;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = AuthProviderAttributeConverter.class)
+    @Column(name = "provider", length = 20, nullable = false)
     private AuthProvider provider;
 
+    @Column(name = "provider_id", length = 255)
     private String providerId;
 
     @OneToMany(mappedBy = "managerUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Deceased> deceasedList=new ArrayList<>();
+    private List<Deceased> deceasedList = new ArrayList<>();
 
-    public void addDeceased(Deceased deceased){
-        deceasedList.add(deceased);
-        deceased.setManagerUser(this);
+    // [수정] provider가 null로 저장되는 것 방지 (LOCAL 기본값 등)
+    @PrePersist
+    private void applyDefaults() { // [수정]
+        if (this.provider == null) {
+            this.provider = AuthProvider.LOCAL; // [수정] 프로젝트 기본 정책에 맞게 변경 가능
+        }
     }
-
-    public void removeDeceased(Deceased deceased){
-        deceasedList.remove(deceased);
-        deceased.setManagerUser(null);
-    }
-
 }
