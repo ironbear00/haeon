@@ -42,10 +42,6 @@ public class Post extends BaseTimeEntity {
     @Column
     private String deceasedPhotoPath;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "status_id")
-//    private Status status;
-
     @Column(nullable = false, length = 50)
     private String status = "SUBMITTED"; // 기본값
 

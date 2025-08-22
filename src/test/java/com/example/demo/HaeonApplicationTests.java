@@ -3,11 +3,20 @@ package com.example.demo;
 import com.example.demo.domain.Deceased;
 import com.example.demo.domain.memorial.Comment;
 import com.example.demo.domain.memorial.Post;
+import com.example.demo.domain.requests.RequestFile;
+import com.example.demo.domain.requests.SnsRequest;
 import com.example.demo.domain.utils.AuthProvider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.utils.Gender;
+import com.example.demo.domain.utils.SnsPlatform;
 import com.example.demo.domain.utils.Status;
 import com.example.demo.repository.*;
+import com.example.demo.repository.memorial.CommentRepository;
+import com.example.demo.repository.memorial.PostRepository;
+import com.example.demo.repository.requests.SnsRequestRepository;
+import com.example.demo.repository.utils.SnsPlatformRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.utils.StatusRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +31,13 @@ import java.util.Random;
 @ActiveProfiles("ironbear")
 class HaeonApplicationTests {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private DeceasedRepository deceasedRepository;
-    @Autowired
-    private PostRepository postRepository;
-    @Autowired
-    private StatusRepository statusRepository;
-    @Autowired
-    private CommentRepository commentRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private DeceasedRepository deceasedRepository;
+    @Autowired private PostRepository postRepository;
+    @Autowired private StatusRepository statusRepository;
+    @Autowired private CommentRepository commentRepository;
+    @Autowired private SnsRequestRepository snsRequestRepository;
+    @Autowired private SnsPlatformRepository snsPlatformRepository;
 
     private final Random random = new Random();
 
@@ -326,23 +332,108 @@ class HaeonApplicationTests {
     }
     //endregion
 
-    //region request file CRUD
-    //
-    //
-    //
-    //create request file
-    public void createRequestFile(){
-
-    }
-    //endregion
-
     //region request CRUD
     //
     //
     //
     //create request
+    @Test
     public void createRequest(){
+        User user = userRepository.findById(11L)
+                .orElseThrow(() -> new RuntimeException("User with id=1 not found"));
+        Deceased deceased = deceasedRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Deceased with id=1 not found"));
+        SnsPlatform platform = snsPlatformRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("SnsPlatform with id=1 not found"));
 
+        SnsRequest request = new SnsRequest();
+        request.setRequester(user);
+        request.setDeceased(deceased);
+        request.setSnsPlatform(platform);
+        Status submittedStatus = statusRepository.findByCode("SUBMITTED")
+                .orElseThrow(() -> new RuntimeException("Status SUBMITTED not found"));
+
+        request.setStatus(submittedStatus.getCode());
+        request.setReason("계정 삭제 요청");
+
+        RequestFile file1 = new RequestFile();
+        file1.setFilePath("/uploads/file1.pdf");
+        file1.setOriginalFileName("file1.pdf");
+        file1.setFileType(null); // 필요 시 FileType 지정
+        request.addFile(file1);
+
+        RequestFile file2 = new RequestFile();
+        file2.setFilePath("/uploads/file2.png");
+        file2.setOriginalFileName("file2.png");
+        file2.setFileType(null);
+        request.addFile(file2);
+
+        SnsRequest saved = snsRequestRepository.save(request);
+
+        System.out.println("Saved Request ID: " + saved.getId() + ", Files count: " + saved.getFiles().size());
+    }
+
+    @Test
+    @Transactional
+    public void readRequest() {
+        SnsRequest request = snsRequestRepository.findById(2L)
+                .orElseThrow(() -> new RuntimeException("SnsRequest not found"));
+
+        System.out.println("Request ID: " + request.getId());
+        System.out.println("Requester: " + request.getRequester().getName());
+        System.out.println("Deceased: " + request.getDeceased().getName());
+        System.out.println("Platform: " + request.getSnsPlatform().getName());
+        System.out.println("Status: " + request.getStatus());
+        System.out.println("Reason: " + request.getReason());
+
+        request.getFiles().forEach(f ->
+                System.out.println("  File: " + f.getOriginalFileName() + ", Path: " + f.getFilePath())
+        );
+    }
+
+    @Test
+    @Transactional
+    public void readAllRequests() {
+        List<SnsRequest> requests = snsRequestRepository.findAll();
+
+        requests.forEach(r -> {
+            System.out.println("Request ID: " + r.getId() +
+                    ", Requester: " + r.getRequester().getName() +
+                    ", Deceased: " + r.getDeceased().getName() +
+                    ", Platform: " + r.getSnsPlatform().getName() +
+                    ", Status: " + r.getStatus() +
+                    ", Reason: " + r.getReason());
+            r.getFiles().forEach(f ->
+                    System.out.println("    File: " + f.getOriginalFileName() + ", Path: " + f.getFilePath())
+            );
+        });
+    }
+
+    //update request
+    @Test
+    public void updateRequest(){
+        SnsRequest request = snsRequestRepository.findById(2L)
+                .orElseThrow(() -> new RuntimeException("SnsRequest not found"));
+
+        request.setReason("계정 삭제 요청 - 업데이트 완료");
+        SnsRequest updated = snsRequestRepository.save(request);
+
+        System.out.println("Updated Request ID: " + updated.getId() + ", New reason: " + updated.getReason());
+    }
+
+    //delete request
+    @Test
+    public void deleteRequest(){
+        SnsRequest request = snsRequestRepository.findById(2L)
+                .orElseThrow(() -> new RuntimeException("SnsRequest not found"));
+
+        Status newStatus = statusRepository.findByCode("DELETED")
+                .orElseThrow(() -> new RuntimeException("Status PROCESSING not found"));
+
+        request.setStatus(newStatus.getCode());
+        SnsRequest updated = snsRequestRepository.save(request);
+
+        System.out.println("Updated Request ID: " + updated.getId() + ", New reason: " + updated.getReason());
     }
     //endregion
 }
