@@ -1,12 +1,13 @@
 package com.example.demo.service;
 
 import com.example.demo.domain.User;
-import com.example.demo.dto.LoginRequest;                 // [수정] 로그인에 필요
+import com.example.demo.domain.utils.AuthProvider;
+import com.example.demo.domain.utils.Gender;
+import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.SignupRequest;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.domain.utils.AuthProvider;                   // [수정] provider 기본값 처리
-import com.example.demo.domain.utils.Gender;
 import com.example.demo.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,156 +17,143 @@ import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // [유지]
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) { // [유지]
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder; // [유지]
-    }
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 회원가입
-     * - SignupRequest는 phone/birthDate/gender를 문자열로 받는다.
-     * - 여기서 LocalDate/Enum으로 변환 후 User 엔티티에 세팅한다.
-     * - 형식 오류/빈값은 null 처리(필요시 기본값으로 바꿔도 됨).
+     * - 이메일, 이름, 비밀번호 필수 검증
+     * - 이메일 중복 체크 및 정규화(공백 제거 + 소문자)
+     * - 비밀번호 암호화
      */
     @Transactional
-    public UserResponse signup(SignupRequest req) { // [유지]
-        // [수정] 이메일 정규화(공백 제거 + 소문자)
-        String email = normalizeEmail(req.getEmail());                             // [수정]
+    public UserResponse signup(SignupRequest req) {
+        String email = normalizeEmail(req.getEmail());
+        String name = safeTrim(req.getName());
+        String rawPw = req.getPassword();
+
         if (email == null) {
-            throw new IllegalArgumentException("이메일은 필수입니다.");                // [수정]
+            throw new IllegalArgumentException("이메일은 필수입니다.");
         }
-
-        // [수정] 이메일 중복 체크
-        Optional<User> existing = userRepository.findByEmail(email);               // [수정]
-        if (existing.isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");        // [유지]
-        }
-
-        // [수정] 이름/비밀번호 필수 검증
-        String name = safeTrim(req.getName());                                     // [수정]
         if (name == null) {
-            throw new IllegalArgumentException("이름은 필수입니다.");                  // [수정]
+            throw new IllegalArgumentException("이름은 필수입니다.");
         }
-        String rawPw = req.getPassword();                                          // [유지]
         if (rawPw == null || rawPw.isBlank()) {
-            throw new IllegalArgumentException("비밀번호는 필수입니다.");               // [유지]
+            throw new IllegalArgumentException("비밀번호는 필수입니다.");
+        }
+
+        // 이메일 중복 체크
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
         User user = new User();
-        user.setName(name);                                                        // [유지]
-        user.setEmail(email);                                                      // [수정]
-        user.setPassword(passwordEncoder.encode(rawPw));                           // [유지]
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(rawPw));
+        user.setProvider(AuthProvider.LOCAL); // 로컬 회원가입으로 고정
 
-        // phone 그대로(또는 숫자만 남기기)
-        String phone = safeTrim(req.getPhone());                                   // [유지]
-        // phone = phone != null ? phone.replaceAll("-", "") : null;              // 숫자만 원하면 주석 해제
-        user.setPhone(emptyToNull(phone));                                         // [유지]
+        // 선택적 필드 처리
+        user.setPhone(emptyToNull(safeTrim(req.getPhone())));
+        user.setBirthDate(parseBirthDate(req.getBirthDate()));
+        user.setGender(parseGender(req.getGender()));
 
-        // birthDate: "yyyy-MM-dd" → LocalDate
-        LocalDate birth = parseBirthDate(req.getBirthDate());                      // [유지]
-        user.setBirthDate(birth);                                                  // [유지]
-
-        // gender: "female/male/other"(대소문자 무관) → Gender enum
-        Gender gender = parseGender(req.getGender());                              // [유지]
-        user.setGender(gender);                                                    // [유지]
-
-        // [수정] provider 기본값(LOCAL) 강제 설정 (엔티티 @PrePersist 있어도 이중 안전장치)
-        if (user.getProvider() == null) {                                          // [수정]
-            user.setProvider(AuthProvider.LOCAL);                                  // [수정]
-        }
-
-        User saved = userRepository.save(user);                                    // [유지]
-        return toResponse(saved);                                                  // [유지]
+        User saved = userRepository.save(user);
+        return toResponse(saved);
     }
 
     /**
-     * 로그인 인증 (세션 설정은 컨트롤러)
+     * 로그인 인증
+     * - 이메일과 비밀번호를 검증하여 User 엔티티 반환
      */
-    @Transactional(readOnly = true)                                                // [수정]
-    public User authenticate(LoginRequest req) {                                    // [수정]
-        String email = normalizeEmail(req.getEmail());                              // [수정]
+    @Transactional(readOnly = true)
+    public User authenticate(LoginRequest req) {
+        String email = normalizeEmail(req.getEmail());
         if (email == null || req.getPassword() == null) {
-            throw new IllegalArgumentException("이메일/비밀번호를 확인하세요.");          // [수정]
+            throw new IllegalArgumentException("이메일과 비밀번호를 확인하세요.");
         }
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정입니다.")); // [수정]
 
-        if (user.getPassword() == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())) { // [수정]
-            throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");          // [수정]
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+
+        if (user.getPassword() == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }
-        return user;                                                                // [수정]
+
+        return user;
     }
 
     /**
      * 내 프로필 조회
+     * - userId로 사용자 정보 조회
      */
-    @Transactional(readOnly = true)                                                // [수정]
-    public UserResponse getProfile(Long userId) {                                   // [수정]
-        if (userId == null) throw new IllegalArgumentException("userId는 필수입니다.");  // [수정]
+    @Transactional(readOnly = true)
+    public UserResponse getProfile(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다.")); // [수정]
-        return toResponse(user);                                                    // [수정]
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        return toResponse(user);
     }
 
     // ==========================
     // 내부 유틸 메서드
     // ==========================
 
-    // 안전 trim
-    private String safeTrim(String s) {                                             // [유지]
-        if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
+    // 안전하게 문자열 앞뒤 공백 제거
+    private String safeTrim(String s) {
+        return (s == null) ? null : s.trim();
     }
 
-    // 빈문자열 → null
-    private String emptyToNull(String s) {                                          // [유지]
-        return (s == null || s.isBlank()) ? null : s;
+    // 문자열이 비어있으면 null 반환
+    private String emptyToNull(String s) {
+        String t = safeTrim(s);
+        return t != null && t.isEmpty() ? null : t;
     }
 
-    // 이메일 정규화
-    private String normalizeEmail(String raw) {                                     // [수정]
+    // 이메일 정규화(공백 제거 + 소문자)
+    private String normalizeEmail(String raw) {
         String t = safeTrim(raw);
         return t == null ? null : t.toLowerCase();
     }
 
-    // "yyyy-MM-dd" 파싱 (실패 시 null)
-    private LocalDate parseBirthDate(String raw) {                                  // [유지]
+    // "yyyy-MM-dd" 형식의 문자열을 LocalDate로 파싱
+    private LocalDate parseBirthDate(String raw) {
         raw = safeTrim(raw);
         if (raw == null) return null;
         try {
-            return LocalDate.parse(raw); // ISO(yyyy-MM-dd)
+            return LocalDate.parse(raw);
         } catch (DateTimeParseException e) {
-            return null; // 형식이 다르면 null 저장(또는 예외로 변경 가능)
+            return null; // 형식 오류 시 null 반환
         }
     }
 
-    // 문자열 → Gender enum (대소문자 무관, 틀리면 null)
-    private Gender parseGender(String raw) {                                        // [유지]
+    // 문자열을 Gender enum으로 파싱(대소문자 무관)
+    private Gender parseGender(String raw) {
         raw = safeTrim(raw);
         if (raw == null) return null;
         try {
             return Gender.valueOf(raw.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return null; // 잘못된 값이면 null (또는 Gender.OTHER로 강제)
-            // return Gender.OTHER;
+            return null; // 잘못된 값이면 null 반환
         }
     }
 
-    // 엔티티 → 응답 DTO
-    private UserResponse toResponse(User u) {                                       // [유지]
-        UserResponse res = new UserResponse();
-        res.setId(u.getId());
-        res.setName(u.getName());
-        res.setEmail(u.getEmail());
-        res.setPhone(u.getPhone());
-        res.setBirthDate(u.getBirthDate()); // LocalDate 그대로 (필요시 문자열 포맷으로 바꿔도 됨)
-        res.setGender(u.getGender());       // Enum 그대로 (필요시 .name() 또는 한글 변환)
-        return res;
+    // User 엔티티를 UserResponse DTO로 변환
+    private UserResponse toResponse(User u) {
+        return new UserResponse(
+                u.getId(),
+                u.getName(),
+                u.getEmail(),
+                u.getPhone(),
+                u.getBirthDate(),
+                u.getGender()
+        );
     }
 }

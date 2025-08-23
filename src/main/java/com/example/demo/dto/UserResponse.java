@@ -17,8 +17,6 @@ public class UserResponse {
     private Long id;                                         // [유지]
     private String name;                                     // [유지]
     private String email;                                    // [유지]
-
-    // ---- 아래 필드 추가 ----
     private String phone;                                    // [수정] 추가
     private LocalDate birthDate;                             // [수정] 추가
     private Gender gender;                                   // [수정] 추가

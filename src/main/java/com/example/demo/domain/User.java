@@ -40,7 +40,6 @@ public class User extends Person {
     private List<Deceased> deceasedList = new ArrayList<>();
 
     // [수정] provider가 null로 저장되는 것 방지 (LOCAL 기본값 등)
-    @PrePersist
     private void applyDefaults() { // [수정]
         if (this.provider == null) {
             this.provider = AuthProvider.LOCAL; // [수정] 프로젝트 기본 정책에 맞게 변경 가능

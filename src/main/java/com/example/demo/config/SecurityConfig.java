@@ -21,12 +21,12 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder() {                // [유지]
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() { // [유지]
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
@@ -43,7 +43,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { // [유지]
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
@@ -51,13 +51,15 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // [유지]
-                        // ===== 여기 핵심 변경 =====
-                        .requestMatchers("/api/auth/**").permitAll() // [유지]  context-path 미사용 환경 대비
-                        .requestMatchers("/auth/**").permitAll()     // [추가]  context-path=/api 환경 대비
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // ===== 핵심 변경 =====
+                        // /api/users/login, /api/users/signup, /api/users/logout 등
+                        // 인증이 필요 없는 엔드포인트를 명시적으로 허용
+                        .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/ping").permitAll() // 추가된 테스트 엔드포인트도 허용
                         // =========================
                         .requestMatchers(
-                                "/", "/**/*.html", "/**/*.css", "/**/*.js",        // [유지]
+                                "/", "/**/*.html", "/**/*.css", "/**/*.js",
                                 "/**/*.png","/**/*.jpg","/**/*.jpeg","/**/*.gif",
                                 "/**/*.svg","/**/*.webp","/**/*.ico",
                                 "/**/*.woff","/**/*.woff2","/**/*.ttf"
