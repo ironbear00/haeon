@@ -52,12 +52,11 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // ===== 핵심 변경 =====
-                        // /api/users/login, /api/users/signup, /api/users/logout 등
-                        // 인증이 필요 없는 엔드포인트를 명시적으로 허용
+                        // ===== 최종 수정된 핵심 코드 =====
+                        // /api/users로 시작하는 모든 요청을 허용합니다.
                         .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/ping").permitAll() // 추가된 테스트 엔드포인트도 허용
-                        // =========================
+                        // 기타 정적 리소스 및 테스트 엔드포인트 허용
+                        .requestMatchers("/api/ping").permitAll()
                         .requestMatchers(
                                 "/", "/**/*.html", "/**/*.css", "/**/*.js",
                                 "/**/*.png","/**/*.jpg","/**/*.jpeg","/**/*.gif",
