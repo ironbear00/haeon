@@ -16,7 +16,6 @@
         label { display:block; margin-bottom:6px; font-weight:600; }
         input[type="email"], input[type="password"] { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
         button[type="submit"] { width:100%; padding:12px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
-        button[disabled]{ opacity:.6; cursor:not-allowed; }
         .msg { margin-top:12px; font-size:14px; min-height:20px; }
         .msg.error { color:#B91C1C; }
         .msg.success { color:#065F46; }
@@ -33,17 +32,17 @@
 
 <main>
     <h2>로그인</h2>
-    <form id="loginForm">
+    <form id="loginForm" method="POST" action="/api/users/login">
         <p>
-            <label for="email">이메일</label>
-            <input id="email" name="email" type="email" placeholder="이메일을 입력하세요" required autocomplete="email" />
+            <label for="username">이메일</label>
+            <input id="username" name="username" type="email" placeholder="이메일을 입력하세요" required autocomplete="email" />
         </p>
         <p>
             <label for="password">비밀번호</label>
             <input id="password" name="password" type="password" placeholder="비밀번호를 입력하세요" required autocomplete="current-password" />
         </p>
-        <button id="loginBtn" type="submit">로그인하기</button>
-        <div id="message" class="msg" aria-live="polite"></div>
+        <button type="submit">로그인하기</button>
+        <div id="message" class="msg error" aria-live="polite"></div>
     </form>
 
     <div class="row">
@@ -57,79 +56,11 @@
 </footer>
 
 <script>
-    // ✅ API 기본 경로
-    const API_BASE = "http://localhost:8080";     // [수정] 확실하게 지정
-    const LOGIN_ENDPOINT = API_BASE + "/api/users/login";
-    const ME_ENDPOINT    = API_BASE + "/api/users/me";
-    const REDIRECT_AFTER_LOGIN = "main.html";
-
-    // [수정] 오타 수정: documㅁent → document
-    const form = document.getElementById("loginForm");
-    const btn  = document.getElementById("loginBtn");
-    const msg  = document.getElementById("message");
-
-    function setMessage(text, type="error"){
-        msg.textContent = text;
-        msg.className = `msg ${type}`;
+    const urlParams = new URLSearchParams(window.location.search);
+    const isError = urlParams.get('error');
+    if (isError) {
+        document.getElementById('message').textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
     }
-
-    // 응답 바디 파싱
-    async function parseBodyOnce(res) {
-        const ct = res.headers.get("content-type") || "";
-        if (ct.includes("application/json")) {
-            return await res.json();
-        } else {
-            const text = await res.text();
-            try { return JSON.parse(text); } catch { return { message: text }; }
-        }
-    }
-
-    async function login(email, password){
-        const res = await fetch(LOGIN_ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",                      // [중요] 세션 쿠키 포함
-            body: JSON.stringify({ email, password })
-        });
-
-        if (!res.ok) {
-            const data = await parseBodyOnce(res);
-            throw new Error(data.message || "로그인에 실패했습니다.");
-        }
-        return await parseBodyOnce(res);
-    }
-
-    async function fetchMe(){
-        const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-        if (!res.ok) return null;
-        return await parseBodyOnce(res);
-    }
-
-    form.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        setMessage("", "");
-        btn.disabled = true;
-
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-
-        if(!email || !password){
-            setMessage("이메일과 비밀번호를 모두 입력하세요.");
-            btn.disabled = false;
-            return;
-        }
-
-        try{
-            await login(email, password);
-            await fetchMe();
-            setMessage("로그인 성공! 메인으로 이동 중...", "success");
-            window.location.href = REDIRECT_AFTER_LOGIN;
-        }catch(err){
-            setMessage("로그인 실패: " + (err?.message || "서버 오류"));
-        }finally{
-            btn.disabled = false;
-        }
-    });
 </script>
 </body>
 </html>

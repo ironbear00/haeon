@@ -14,8 +14,6 @@
         nav a { text-decoration: none; color: var(--text); font-weight: 500; }
         main { max-width:800px; margin:40px auto; background:var(--card); padding:24px; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.05); }
         .row { display:flex; justify-content:space-between; align-items:center; }
-
-        /* 사용자 상태 UI를 위한 CSS 추가 */
         .user-status { display: flex; align-items: center; gap: 10px; }
         .user-status-item { font-size: 15px; color: var(--text); font-weight: 500; }
         .user-status-btn { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: none; cursor: pointer; color: var(--brand); text-decoration: none; }
@@ -30,14 +28,12 @@
     <div id="authStatus" class="user-status">
     </div>
 </header>
-
 <nav>
     <a href="dashboard.html">디지털 자산 관리</a>
     <a href="memorial.html">온라인 추모 공간</a>
     <a href="process.html">절차 안내</a>
     <a href="about.html">회사소개</a>
 </nav>
-
 <main>
     <h2>주요 기능</h2>
     <ul>
@@ -51,11 +47,9 @@
         </li>
     </ul>
 </main>
-
 <footer>
     <p>&copy; 2025 해커톤 팀. 모든 권리 보유.</p>
 </footer>
-
 <script>
     const API_BASE = "http://localhost:8080";
     const ME_ENDPOINT = API_BASE + "/api/users/me";
@@ -63,44 +57,47 @@
 
     const authStatus = document.getElementById("authStatus");
 
-    // 사용자 정보 가져오기
     async function fetchMe() {
         try {
             const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-            if (res.ok) {
-                return await res.json();
+            console.log("Fetch user info status:", res.status);
+
+            if (!res.ok) {
+                console.log("Not logged in. Redirecting to login page.");
+                window.location.href = '/login.html';
+                return null;
             }
-            return null;
+
+            const user = await res.json();
+            console.log("Logged in user:", user);
+            return user;
+
         } catch (err) {
             console.error("Failed to fetch user info:", err);
+            window.location.href = '/login.html';
             return null;
         }
     }
 
-    // UI 업데이트 함수
     function updateUI(user) {
-        authStatus.innerHTML = ""; // 기존 내용 비우기
+        authStatus.innerHTML = "";
         if (user) {
-            // 로그인 상태
             authStatus.innerHTML = `
-                    <span class="user-status-item">${user.name}님</span>
-                    <button id="logoutBtn" class="logout-btn">로그아웃</button>
-                `;
-            // 로그아웃 버튼 이벤트 리스너 추가
+                <span class="user-status-item">${user.name}님</span>
+                <button id="logoutBtn" class="logout-btn">로그아웃</button>
+            `;
             document.getElementById("logoutBtn").addEventListener("click", async () => {
                 await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
-                window.location.reload(); // 로그아웃 후 페이지 새로고침
+                window.location.reload();
             });
         } else {
-            // 로그아웃 상태
             authStatus.innerHTML = `
-                    <a class="user-status-btn" href="login.html">로그인</a>
-                    <a class="user-status-btn" href="signup.html">회원가입</a>
-                `;
+                <a class="user-status-btn" href="login.html">로그인</a>
+                <a class="user-status-btn" href="signup.html">회원가입</a>
+            `;
         }
     }
 
-    // 페이지 로드 시 실행
     (async () => {
         const user = await fetchMe();
         updateUI(user);

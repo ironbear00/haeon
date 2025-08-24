@@ -1,24 +1,24 @@
 package com.example.demo.controller;
 
-import com.example.demo.domain.User;
-import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.SignupRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000") // CORS 허용
+@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"}, allowCredentials = "true")
 @RequiredArgsConstructor
 public class UserController {
 
-    public static final String SESSION_USER_ID = "LOGIN_USER_ID";
-
-    private final UserService userService; // UserService 주입
+    private final UserService userService;
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest req) {
@@ -26,37 +26,31 @@ public class UserController {
         return ResponseEntity.status(201).body(res);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@RequestBody LoginRequest req, HttpSession session) {
-        User user = userService.authenticate(req);
-        session.setAttribute(SESSION_USER_ID, user.getId());
-
-        UserResponse res = new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getBirthDate(),
-                user.getGender()
-        );
-
-        return ResponseEntity.ok(res);
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(HttpSession session) {
-        Object userIdAttr = session.getAttribute(SESSION_USER_ID);
-        if (userIdAttr == null) {
-            return ResponseEntity.status(401).build();
-        }
-        Long userId = (Long) userIdAttr;
-        UserResponse me = userService.getProfile(userId);
-        return ResponseEntity.ok(me);
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpSession session) {
         session.invalidate();
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            String email = userDetails.getUsername();
+
+            UserResponse me = userService.getProfileByEmail(email);
+            return ResponseEntity.ok(me);
+        } else {
+            String email = (String) principal;
+            UserResponse me = userService.getProfileByEmail(email);
+            return ResponseEntity.ok(me);
+        }
     }
 }
