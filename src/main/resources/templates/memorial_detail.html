@@ -1,56 +1,95 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>추모공간 - 고인 성함</title>
+    <meta charset="UTF-8" />
+    <title>추모공간 상세 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
-<header>
-    <h1>故 OOO님 추모공간</h1>
-</header>
 
-<nav>
-    <a href="requests_dashboard.html">디지털 자산 관리</a>
-    <a href="memorial.html">온라인 추모 공간</a>
-    <a href="main.html">로그아웃</a>
-    <a href="process.html">절차 안내</a> <!-- NEW -->
-    <a href="about.html">회사소개</a> <!-- NEW -->
-</nav>
+<div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
     <div id="deceased_info_detail">
-        <img src="images/profile.jpg" alt="고인 프로필 사진" style="width:200px; border-radius: 50%;">
+        <img th:src="@{/images/profile.jpg}" alt="고인 프로필 사진" style="width:200px; border-radius: 50%;">
         <p><strong>성함:</strong> 故 OOO님</p>
         <p><strong>생년월일:</strong> 1950.01.01</p>
         <p><strong>사망일:</strong> 2025.07.28</p>
         <p><strong>장례식 정보:</strong> 부산광역시 부산진구</p>
         <p><strong>추모글:</strong> 항상 밝고 긍정적이던 네 모습이 아직도 눈에 선하다. 그곳에서는 편안하길 바라. 정말 고맙고 사랑해.</p>
     </div>
+
+    <hr>
+
+    <div id="comment_section">
+        <h2>댓글 남기기</h2>
+        <form action="/memorial/comment" method="post">
+            <p>
+                <textarea name="comment" placeholder="댓글을 남겨주세요." rows="3" cols="50" required></textarea>
+            </p>
+            <button type="submit">댓글 등록</button>
+        </form>
+
+        <h3>댓글 목록</h3>
+        <div style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
+            <p><strong>김철수:</strong> 삼가 고인의 명복을 빕니다.</p>
+        </div>
+        <div style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
+            <p><strong>박영희:</strong> 좋은 곳으로 가시길 바랍니다.</p>
+        </div>
+    </div>
+    <p><a href="/memorial">목록으로 돌아가기</a></p>
 </main>
 
-<hr>
+<div th:replace="~{common/footer :: footerFragment}"></div>
 
-<div id="comment_section">
-    <h2>댓글 남기기</h2>
-    <form>
-        <p>
-            <textarea placeholder="댓글을 남겨주세요." rows="3" cols="50"></textarea>
-        </p>
-        <button type="submit">댓글 등록</button>
-    </form>
+<script>
+    const API_BASE = "http://localhost:8080";
+    const ME_ENDPOINT = API_BASE + "/user/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
 
-    <h3>댓글 목록</h3>
-    <!-- 예시 댓글 -->
-    <div style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
-        <p><strong>김철수:</strong> 삼가 고인의 명복을 빕니다.</p>
-    </div>
-    <div style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
-        <p><strong>박영희:</strong> 좋은 곳으로 가시길 바랍니다.</p>
-    </div>
-</div>
+    document.addEventListener("DOMContentLoaded", function() {
+        const authStatus = document.getElementById("authStatus");
 
-<footer>
-    <p><a href="memorial.html">목록으로 돌아가기</a></p>
-</footer>
+        async function fetchMe() {
+            try {
+                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+                if (res.ok) {
+                    return await res.json();
+                }
+                return null;
+            } catch (err) {
+                console.error("Failed to fetch user info:", err);
+                return null;
+            }
+        }
+
+        function updateUI(user) {
+            if (!authStatus) return;
+            authStatus.innerHTML = "";
+            if (user) {
+                authStatus.innerHTML = `
+                        <span class="user-status-item">${user.name}님</span>
+                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                    `;
+                document.getElementById("logoutBtn").addEventListener("click", async () => {
+                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    window.location.reload();
+                });
+            } else {
+                authStatus.innerHTML = `
+                        <a class="user-status-btn" href="/user/login">로그인</a>
+                        <a class="user-status-btn" href="/user/signup">회원가입</a>
+                    `;
+            }
+        }
+        (async () => {
+            const user = await fetchMe();
+            updateUI(user);
+        })();
+    });
+</script>
 </body>
 </html>

@@ -8,9 +8,10 @@ import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Controller
 @RequestMapping("/user")
 @CrossOrigin(origins = "http://localhost:3000") // CORS 허용
 @RequiredArgsConstructor
@@ -21,12 +22,12 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("login")
-    public String Login(){
+    public String LoginPage(){
         return "login";
     }
 
     @GetMapping("signup")
-    public String Signup(){
+    public String SignupPage(){
         return "signup";
     }
 

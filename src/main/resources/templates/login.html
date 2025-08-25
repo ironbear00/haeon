@@ -1,35 +1,16 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
-    <title>로그인</title>
+    <title>로그인 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-        :root { --brand:#4F46E5; --bg:#f7f7f9; --card:#ffffff; --border:#e6e6ef; --text:#111827; --muted:#6b7280; }
-        * { box-sizing: border-box; }
-        body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, sans-serif; background: var(--bg); color: var(--text); }
-        header, footer { background: var(--card); border-bottom:1px solid var(--border); padding:16px 20px; }
-        header h1 { margin:0; font-size:20px; }
-        main { max-width:420px; margin:40px auto; background:var(--card); padding:24px; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.05); }
-        h2 { margin:0 0 8px 0; }
-        form p { margin:12px 0; }
-        label { display:block; margin-bottom:6px; font-weight:600; }
-        input[type="email"], input[type="password"] { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
-        button[type="submit"] { width:100%; padding:12px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
-        button[disabled]{ opacity:.6; cursor:not-allowed; }
-        .msg { margin-top:12px; font-size:14px; min-height:20px; }
-        .msg.error { color:#B91C1C; }
-        .msg.success { color:#065F46; }
-        .row { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
-        .link { color:var(--brand); text-decoration:none; }
-    </style>
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
 </head>
 <body>
-<header>
-    <a href="main.html" style="text-decoration:none;color:inherit;">
-        <h1>헤온 🤝</h1>
-    </a>
-</header>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
     <h2>로그인</h2>
@@ -48,22 +29,17 @@
 
     <div class="row">
         <span class="muted">계정이 없으신가요?</span>
-        <a class="link" href="signup.html">회원가입하기</a>
+        <a class="link" href="/user/signup">회원가입하기</a>
     </div>
 </main>
 
-<footer>
-    <p><a class="link" href="main.html">메인으로 돌아가기</a></p>
-</footer>
+<div th:replace="~{common/footer :: footerFragment}"></div>
 
 <script>
-    // ✅ API 기본 경로
-    const API_BASE = "http://localhost:8080";     // [수정] 확실하게 지정
-    const LOGIN_ENDPOINT = API_BASE + "/api/users/login";
-    const ME_ENDPOINT    = API_BASE + "/api/users/me";
-    const REDIRECT_AFTER_LOGIN = "main.html";
+    const API_BASE = "http://localhost:8080";
+    const LOGIN_ENDPOINT = API_BASE + "/user/login"; // 경로 일관성을 위해 수정
+    const REDIRECT_AFTER_LOGIN = "/main"; // Controller 경로에 맞게 수정
 
-    // [수정] 오타 수정: documㅁent → document
     const form = document.getElementById("loginForm");
     const btn  = document.getElementById("loginBtn");
     const msg  = document.getElementById("message");
@@ -73,7 +49,6 @@
         msg.className = `msg ${type}`;
     }
 
-    // 응답 바디 파싱
     async function parseBodyOnce(res) {
         const ct = res.headers.get("content-type") || "";
         if (ct.includes("application/json")) {
@@ -88,7 +63,7 @@
         const res = await fetch(LOGIN_ENDPOINT, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            credentials: "include",                      // [중요] 세션 쿠키 포함
+            credentials: "include",
             body: JSON.stringify({ email, password })
         });
 
@@ -96,12 +71,6 @@
             const data = await parseBodyOnce(res);
             throw new Error(data.message || "로그인에 실패했습니다.");
         }
-        return await parseBodyOnce(res);
-    }
-
-    async function fetchMe(){
-        const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-        if (!res.ok) return null;
         return await parseBodyOnce(res);
     }
 
@@ -121,7 +90,6 @@
 
         try{
             await login(email, password);
-            await fetchMe();
             setMessage("로그인 성공! 메인으로 이동 중...", "success");
             window.location.href = REDIRECT_AFTER_LOGIN;
         }catch(err){
