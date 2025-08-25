@@ -51,20 +51,19 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // ===== 핵심 변경 =====
-                        // /api/users/login, /api/users/signup, /api/users/logout 등
-                        // 인증이 필요 없는 엔드포인트를 명시적으로 허용
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/ping").permitAll() // 추가된 테스트 엔드포인트도 허용
-                        // =========================
-                        .requestMatchers(
-                                "/", "/**/*.html", "/**/*.css", "/**/*.js",
-                                "/**/*.png","/**/*.jpg","/**/*.jpeg","/**/*.gif",
-                                "/**/*.svg","/**/*.webp","/**/*.ico",
-                                "/**/*.woff","/**/*.woff2","/**/*.ttf"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/static/**").permitAll()
+                                .requestMatchers("/", "/*.html", "/*.css", "/*.js",
+                                        "/*.png","/*.jpg","/*.jpeg","/*.gif",
+                                        "/*.svg","/*.webp","/*.ico",
+                                        "/*.woff","/*.woff2","/*.ttf").permitAll()
+                                .requestMatchers("/api/users/login").permitAll()
+                                .requestMatchers("/api/users/signup").permitAll()
+                                .requestMatchers("/api/users/logout").permitAll()
+                                .requestMatchers("/api/ping").permitAll() // 추가된 테스트 엔드포인트도 허용
+                                .requestMatchers("/mypage_info").permitAll()
+                                .requestMatchers("/mypage/**").permitAll()
+                                .anyRequest().permitAll()
                 );
         return http.build();
     }
