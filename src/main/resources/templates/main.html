@@ -22,17 +22,17 @@
 </head>
 <body>
 <header class="row">
-    <a href="main" style="text-decoration:none;color:inherit;">
+    <a href="main.html" style="text-decoration:none;color:inherit;">
         <h1>헤온 🤝</h1>
     </a>
     <div id="authStatus" class="user-status">
     </div>
 </header>
 <nav>
-    <a href="requests/dashboard">디지털 자산 관리</a>
-    <a href="memorial">온라인 추모 공간</a>
-    <a href="process">절차 안내</a>
-    <a href="about">회사소개</a>
+    <a href="dashboard.html">디지털 자산 관리</a>
+    <a href="memorial.html">온라인 추모 공간</a>
+    <a href="process.html">절차 안내</a>
+    <a href="about.html">회사소개</a>
 </nav>
 <main>
     <h2>주요 기능</h2>
@@ -52,8 +52,8 @@
 </footer>
 <script>
     const API_BASE = "http://localhost:8080";
-    const ME_ENDPOINT = API_BASE + "user/me";
-    const LOGOUT_ENDPOINT = API_BASE + "user/logout";
+    const ME_ENDPOINT = API_BASE + "/api/users/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/api/users/logout";
 
     const authStatus = document.getElementById("authStatus");
 
@@ -83,31 +83,18 @@
         authStatus.innerHTML = "";
         if (user) {
             authStatus.innerHTML = `
-<<<<<<< HEAD:src/main/resources/static/main.html
                 <span class="user-status-item">${user.name}님</span>
                 <button id="logoutBtn" class="logout-btn">로그아웃</button>
             `;
-=======
-                    <span class="user-status-item">${user.name}님</span>
-                    <button id="logoutBtn" class="logout-btn">로그아웃</button>
-                `;
-
->>>>>>> master:src/main/resources/templates/main.html
             document.getElementById("logoutBtn").addEventListener("click", async () => {
                 await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
                 window.location.reload();
             });
         } else {
             authStatus.innerHTML = `
-<<<<<<< HEAD:src/main/resources/static/main.html
                 <a class="user-status-btn" href="login.html">로그인</a>
                 <a class="user-status-btn" href="signup.html">회원가입</a>
             `;
-=======
-                    <a class="user-status-btn" href="user/login">로그인</a>
-                    <a class="user-status-btn" href="user/signup">회원가입</a>
-                `;
->>>>>>> master:src/main/resources/templates/main.html
         }
     }
 

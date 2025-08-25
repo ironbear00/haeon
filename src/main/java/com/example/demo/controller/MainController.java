@@ -8,7 +8,7 @@ import java.security.Principal;
 
 @Controller
 public class MainController {
-    @GetMapping({"/", "main"})
+    @GetMapping({"/", "main", "main.html"})
     public String mainPage() {
         return "main";
     }
