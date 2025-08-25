@@ -11,14 +11,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/user")
 @CrossOrigin(origins = "http://localhost:3000") // CORS 허용
 @RequiredArgsConstructor
 public class UserController {
 
     public static final String SESSION_USER_ID = "LOGIN_USER_ID";
 
-    private final UserService userService; // UserService 주입
+    private final UserService userService;
+
+    @GetMapping("login")
+    public String Login(){
+        return "login";
+    }
+
+    @GetMapping("signup")
+    public String Signup(){
+        return "signup";
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest req) {
