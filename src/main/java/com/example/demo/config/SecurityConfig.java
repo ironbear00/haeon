@@ -60,6 +60,7 @@ public class SecurityConfig {
                         sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .requestMatchers("/api/ping").permitAll()
                         .requestMatchers("/", "/css/**", "/js/**", "/*.html", "/favicon.ico").permitAll()
@@ -82,6 +83,22 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+=======
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/static/**").permitAll()
+                                .requestMatchers("/", "/*.html", "/*.css", "/*.js",
+                                        "/*.png","/*.jpg","/*.jpeg","/*.gif",
+                                        "/*.svg","/*.webp","/*.ico",
+                                        "/*.woff","/*.woff2","/*.ttf").permitAll()
+                                .requestMatchers("/api/users/login").permitAll()
+                                .requestMatchers("/api/users/signup").permitAll()
+                                .requestMatchers("/api/users/logout").permitAll()
+                                .requestMatchers("/api/ping").permitAll() // 추가된 테스트 엔드포인트도 허용
+                                .requestMatchers("/mypage_info").permitAll()
+                                .requestMatchers("/mypage/**").permitAll()
+                                .anyRequest().permitAll()
+                );
+>>>>>>> master
         return http.build();
     }
 }

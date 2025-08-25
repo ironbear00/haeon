@@ -13,12 +13,33 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/api/users")
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"}, allowCredentials = "true")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+=======
+@RequestMapping("/user")
+@CrossOrigin(origins = "http://localhost:3000") // CORS 허용
+@RequiredArgsConstructor
+public class UserController {
+
+    public static final String SESSION_USER_ID = "LOGIN_USER_ID";
+
+    private final UserService userService;
+
+    @GetMapping("login")
+    public String Login(){
+        return "login";
+    }
+
+    @GetMapping("signup")
+    public String Signup(){
+        return "signup";
+    }
+>>>>>>> master
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest req) {
