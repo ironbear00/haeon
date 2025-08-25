@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="row" th:fragment="headerFragment">
+    <a href="/" style="text-decoration:none;color:inherit;">
+        <h1>헤온 🤝</h1>
+    </a>
+
+    <nav>
+        <a href="/requests/dashboard">디지털 자산 관리</a>
+        <a href="/memorial">온라인 추모 공간</a>
+        <a href="/process">절차 안내</a>
+        <a href="/about">회사소개</a>
+    </nav>
+
+    <div id="authStatus" class="user-status">
+    </div>
+
+</header>
+</body>
+</html>

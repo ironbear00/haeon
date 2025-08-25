@@ -12,4 +12,14 @@ public class MainController {
     public String mainPage() {
         return "main";
     }
+
+    @GetMapping("/process")
+    public String processPage() {
+        return "process";
+    }
+
+    @GetMapping("/about")
+    public String aboutPage() {
+        return "about";
+    }
 }

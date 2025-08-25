@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
-    <title>로그인</title>
+    <title>로그인 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+<<<<<<< HEAD
     <style>
         :root { --brand:#4F46E5; --bg:#f7f7f9; --card:#ffffff; --border:#e6e6ef; --text:#111827; --muted:#6b7280; }
         * { box-sizing: border-box; }
@@ -22,13 +23,15 @@
         .row { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
         .link { color:var(--brand); text-decoration:none; }
     </style>
+=======
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
+>>>>>>> master
 </head>
 <body>
-<header>
-    <a href="main.html" style="text-decoration:none;color:inherit;">
-        <h1>헤온 🤝</h1>
-    </a>
-</header>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
     <h2>로그인</h2>
@@ -47,20 +50,83 @@
 
     <div class="row">
         <span class="muted">계정이 없으신가요?</span>
-        <a class="link" href="signup.html">회원가입하기</a>
+        <a class="link" href="/user/signup">회원가입하기</a>
     </div>
 </main>
 
-<footer>
-    <p><a class="link" href="main.html">메인으로 돌아가기</a></p>
-</footer>
+<div th:replace="~{common/footer :: footerFragment}"></div>
 
 <script>
+<<<<<<< HEAD
     const urlParams = new URLSearchParams(window.location.search);
     const isError = urlParams.get('error');
     if (isError) {
         document.getElementById('message').textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
     }
+=======
+    const API_BASE = "http://localhost:8080";
+    const LOGIN_ENDPOINT = API_BASE + "/user/login"; // 경로 일관성을 위해 수정
+    const REDIRECT_AFTER_LOGIN = "/main"; // Controller 경로에 맞게 수정
+
+    const form = document.getElementById("loginForm");
+    const btn  = document.getElementById("loginBtn");
+    const msg  = document.getElementById("message");
+
+    function setMessage(text, type="error"){
+        msg.textContent = text;
+        msg.className = `msg ${type}`;
+    }
+
+    async function parseBodyOnce(res) {
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+            return await res.json();
+        } else {
+            const text = await res.text();
+            try { return JSON.parse(text); } catch { return { message: text }; }
+        }
+    }
+
+    async function login(email, password){
+        const res = await fetch(LOGIN_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+            const data = await parseBodyOnce(res);
+            throw new Error(data.message || "로그인에 실패했습니다.");
+        }
+        return await parseBodyOnce(res);
+    }
+
+    form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        setMessage("", "");
+        btn.disabled = true;
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if(!email || !password){
+            setMessage("이메일과 비밀번호를 모두 입력하세요.");
+            btn.disabled = false;
+            return;
+        }
+
+        try{
+            await login(email, password);
+            setMessage("로그인 성공! 메인으로 이동 중...", "success");
+            window.location.href = REDIRECT_AFTER_LOGIN;
+        }catch(err){
+            setMessage("로그인 실패: " + (err?.message || "서버 오류"));
+        }finally{
+            btn.disabled = false;
+        }
+    });
+>>>>>>> master
 </script>
 </body>
 </html>

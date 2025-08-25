@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <title>메인 페이지 - 고인 SNS 정리 서비스</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+<<<<<<< HEAD
     <style>
         :root { --brand:#4F46E5; --bg:#f7f7f9; --card:#ffffff; --border:#e6e6ef; --text:#111827; --muted:#6b7280; }
         * { box-sizing: border-box; }
@@ -34,6 +35,15 @@
     <a href="process.html">절차 안내</a>
     <a href="about.html">회사소개</a>
 </nav>
+=======
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
+
+>>>>>>> master
 <main>
     <h2>주요 기능</h2>
     <ul>
@@ -47,6 +57,7 @@
         </li>
     </ul>
 </main>
+<<<<<<< HEAD
 <footer>
     <p>&copy; 2025 해커톤 팀. 모든 권리 보유.</p>
 </footer>
@@ -54,9 +65,20 @@
     const API_BASE = "http://localhost:8080";
     const ME_ENDPOINT = API_BASE + "/api/users/me";
     const LOGOUT_ENDPOINT = API_BASE + "/api/users/logout";
+=======
 
-    const authStatus = document.getElementById("authStatus");
+<div th:replace="~{common/footer :: footerFragment}"></div>
 
+<script>
+    const API_BASE = "http://localhost:8080";
+    const ME_ENDPOINT = API_BASE + "/user/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
+>>>>>>> master
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const authStatus = document.getElementById("authStatus");
+
+<<<<<<< HEAD
     async function fetchMe() {
         try {
             const res = await fetch(ME_ENDPOINT, { credentials: "include" });
@@ -76,9 +98,22 @@
             console.error("Failed to fetch user info:", err);
             window.location.href = '/login.html';
             return null;
+=======
+        async function fetchMe() {
+            try {
+                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+                if (res.ok) {
+                    return await res.json();
+                }
+                return null;
+            } catch (err) {
+                console.error("Failed to fetch user info:", err);
+                return null;
+            }
+>>>>>>> master
         }
-    }
 
+<<<<<<< HEAD
     function updateUI(user) {
         authStatus.innerHTML = "";
         if (user) {
@@ -95,13 +130,42 @@
                 <a class="user-status-btn" href="login.html">로그인</a>
                 <a class="user-status-btn" href="signup.html">회원가입</a>
             `;
-        }
-    }
+=======
+        function updateUI(user) {
+            if (!authStatus) return;
 
+            authStatus.innerHTML = "";
+            if (user) {
+                authStatus.innerHTML = `
+                        <span class="user-status-item">${user.name}님</span>
+                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                    `;
+
+                document.getElementById("logoutBtn").addEventListener("click", async () => {
+                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    window.location.reload();
+                });
+            } else {
+                authStatus.innerHTML = `
+                        <a class="user-status-btn" href="/user/login">로그인</a>
+                        <a class="user-status-btn" href="/user/signup">회원가입</a>
+                    `;
+            }
+>>>>>>> master
+        }
+
+<<<<<<< HEAD
     (async () => {
         const user = await fetchMe();
         updateUI(user);
     })();
+=======
+        (async () => {
+            const user = await fetchMe();
+            updateUI(user);
+        })();
+    });
+>>>>>>> master
 </script>
 </body>
 </html>

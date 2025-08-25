@@ -1,32 +1,19 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>회원가입</title>
+    <meta charset="UTF-8" />
+    <title>회원가입 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-        :root { --brand:#4F46E5; --bg:#f7f7f9; --card:#ffffff; --border:#e6e6ef; --text:#111827; }
-        * { box-sizing: border-box; }
-        body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,sans-serif; background:var(--bg); color:var(--text); }
-        header, footer { background:var(--card); border-bottom:1px solid var(--border); padding:16px 20px; }
-        main { max-width:520px; margin:40px auto; background:var(--card); padding:24px; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.05); }
-        label { display:block; margin:10px 0 6px; font-weight:600; }
-        input, select { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; }
-        button { width:100%; padding:12px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-weight:700; cursor:pointer; margin-top:12px; }
-        button[disabled]{ opacity:.6; cursor:not-allowed; }
-        .msg { margin-top:12px; font-size:14px; min-height:20px; }
-        .msg.error { color:#B91C1C; } .msg.success { color:#065F46; }
-    </style>
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <link rel="stylesheet" th:href="@{/css/signup.css}" />
 </head>
 <body>
-<header>
-    <a href="main.html" style="text-decoration:none;color:inherit;">
-        <h1>헤온🤝</h1>
-    </a>
-    <h1>회원가입</h1>
-</header>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
+    <h2>회원가입</h2>
     <form id="signupForm">
         <label for="name">이름</label>
         <input id="name" name="name" type="text" placeholder="이름" required />
@@ -55,17 +42,27 @@
         <button id="signupBtn" type="submit">회원가입</button>
         <div id="message" class="msg" aria-live="polite"></div>
     </form>
+
+    <div class="row">
+        <span class="muted">이미 계정이 있으신가요?</span>
+        <a class="link" href="/user/login">로그인하기</a>
+    </div>
 </main>
 
-<footer>
-    <p style="padding:16px 20px;"><a href="login.html">로그인으로 돌아가기</a></p>
-</footer>
+<div th:replace="~{common/footer :: footerFragment}"></div>
 
 <script>
+    // 스크립트는 이전과 거의 동일하게 유지하되, 경로만 수정합니다.
     const API_BASE = "http://localhost:8080";
+<<<<<<< HEAD
     const SIGNUP_ENDPOINT = API_BASE + "/api/users/signup";
     const LOGIN_ENDPOINT  = API_BASE + "/api/users/login";
     const REDIRECT_AFTER  = "main.html";
+=======
+    const SIGNUP_ENDPOINT = API_BASE + "/user/signup"; // Controller 경로에 맞게 수정
+    const LOGIN_ENDPOINT  = API_BASE + "/user/login";  // Controller 경로에 맞게 수정
+    const REDIRECT_AFTER  = "/main";                 // Controller 경로에 맞게 수정
+>>>>>>> master
 
     const form = document.getElementById("signupForm");
     const btn  = document.getElementById("signupBtn");
@@ -97,11 +94,11 @@
         const birthDate = document.getElementById("birthDate").value;
         let   gender    = document.getElementById("gender").value;
 
-        if (!name || !email || !password){
-            setMsg("이름, 이메일, 비밀번호는 필수입니다.");
-            btn.disabled = false;
-            return;
+        if (!name || !email || !password || !phone || !birthDate || !gender){
+            setMsg("모든 항목을 입력해주세요.");
+            btn.disabled = false; return;
         }
+<<<<<<< HEAD
         if (!phone || !birthDate || !gender){
             setMsg("전화번호/생년월일/성별을 입력하세요.");
             btn.disabled = false;
@@ -112,22 +109,23 @@
 
         const payload = { name, email, password, phone, birthDate, gender };
         console.log("signup payload", payload);
+=======
+        if (gender) gender = gender.toUpperCase();
+
+        const payload = { name, email, password, phone, birthDate, gender };
+>>>>>>> master
 
         try{
             let res = await fetch(SIGNUP_ENDPOINT, {
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                credentials:"include",
-                body: JSON.stringify(payload)
+                method:"POST", headers:{"Content-Type":"application/json"},
+                credentials:"include", body: JSON.stringify(payload)
             });
             const signData = await parseBodyOnce(res);
             if(!res.ok) throw new Error(signData?.message || await extractErr(res));
 
             res = await fetch(LOGIN_ENDPOINT, {
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                credentials:"include",
-                body: JSON.stringify({ email, password })
+                method:"POST", headers:{"Content-Type":"application/json"},
+                credentials:"include", body: JSON.stringify({ email, password })
             });
             const loginData = await parseBodyOnce(res);
             if(!res.ok) throw new Error(loginData?.message || await extractErr(res));

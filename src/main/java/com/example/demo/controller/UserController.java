@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+<<<<<<< HEAD
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,11 +16,32 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"}, allowCredentials = "true")
+=======
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+@RequestMapping("/user")
+@CrossOrigin(origins = "http://localhost:3000") // CORS 허용
+>>>>>>> master
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
+<<<<<<< HEAD
+=======
+    @GetMapping("login")
+    public String LoginPage(){
+        return "login";
+    }
+
+    @GetMapping("signup")
+    public String SignupPage(){
+        return "signup";
+    }
+
+>>>>>>> master
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest req) {
         UserResponse res = userService.signup(req);
