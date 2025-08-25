@@ -7,15 +7,21 @@
     </a>
 
     <nav>
-        <a href="/requests/dashboard">디지털 자산 관리</a>
-        <a href="/memorial">온라인 추모 공간</a>
-        <a href="/process">절차 안내</a>
-        <a href="/about">회사소개</a>
+        <div class="dropdown">
+            <span class="nav-item">디지털 자산 관리</span>
+            <div class="dropdown-content">
+                <a href="/requests/apply">계정정리 신청</a>
+                <a href="/requests/dashboard">신청 현황</a>
+            </div>
+        </div>
+
+        <a class="nav-item" href="/memorial">온라인 추모 공간</a>
+        <a class="nav-item" href="/process">절차 안내</a>
+        <a class="nav-item" href="/about">회사소개</a>
     </nav>
 
     <div id="authStatus" class="user-status">
     </div>
-
 </header>
 </body>
 </html>

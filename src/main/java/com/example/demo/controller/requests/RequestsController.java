@@ -12,4 +12,7 @@ public class RequestsController {
     public String requestsDashboardPage(){
         return "requests_dashboard";
     }
+
+    @GetMapping("/apply")
+    public String requestsApplyPage(){ return "apply";}
 }
