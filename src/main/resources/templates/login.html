@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>로그인 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<<<<<<< HEAD
+    <style>
+        :root { --brand:#4F46E5; --bg:#f7f7f9; --card:#ffffff; --border:#e6e6ef; --text:#111827; --muted:#6b7280; }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, sans-serif; background: var(--bg); color: var(--text); }
+        header, footer { background: var(--card); border-bottom:1px solid var(--border); padding:16px 20px; }
+        header h1 { margin:0; font-size:20px; }
+        main { max-width:420px; margin:40px auto; background:var(--card); padding:24px; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.05); }
+        h2 { margin:0 0 8px 0; }
+        form p { margin:12px 0; }
+        label { display:block; margin-bottom:6px; font-weight:600; }
+        input[type="email"], input[type="password"] { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
+        button[type="submit"] { width:100%; padding:12px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+        .msg { margin-top:12px; font-size:14px; min-height:20px; }
+        .msg.error { color:#B91C1C; }
+        .msg.success { color:#065F46; }
+        .row { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+        .link { color:var(--brand); text-decoration:none; }
+    </style>
+=======
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
+>>>>>>> master
+</head>
+<body>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
+
+<main>
+    <h2>로그인</h2>
+    <form id="loginForm" method="POST" action="/api/users/login">
+        <p>
+            <label for="username">이메일</label>
+            <input id="username" name="username" type="email" placeholder="이메일을 입력하세요" required autocomplete="email" />
+        </p>
+        <p>
+            <label for="password">비밀번호</label>
+            <input id="password" name="password" type="password" placeholder="비밀번호를 입력하세요" required autocomplete="current-password" />
+        </p>
+        <button type="submit">로그인하기</button>
+        <div id="message" class="msg error" aria-live="polite"></div>
+    </form>
+
+    <div class="row">
+        <span class="muted">계정이 없으신가요?</span>
+        <a class="link" href="/user/signup">회원가입하기</a>
+    </div>
+</main>
+
+<div th:replace="~{common/footer :: footerFragment}"></div>
+
+<script>
+<<<<<<< HEAD
+    const urlParams = new URLSearchParams(window.location.search);
+    const isError = urlParams.get('error');
+    if (isError) {
+        document.getElementById('message').textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+    }
+=======
+    const API_BASE = "http://localhost:8080";
+    const LOGIN_ENDPOINT = API_BASE + "/user/login"; // 경로 일관성을 위해 수정
+    const REDIRECT_AFTER_LOGIN = "/main"; // Controller 경로에 맞게 수정
+
+    const form = document.getElementById("loginForm");
+    const btn  = document.getElementById("loginBtn");
+    const msg  = document.getElementById("message");
+
+    function setMessage(text, type="error"){
+        msg.textContent = text;
+        msg.className = `msg ${type}`;
+    }
+
+    async function parseBodyOnce(res) {
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+            return await res.json();
+        } else {
+            const text = await res.text();
+            try { return JSON.parse(text); } catch { return { message: text }; }
+        }
+    }
+
+    async function login(email, password){
+        const res = await fetch(LOGIN_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+            const data = await parseBodyOnce(res);
+            throw new Error(data.message || "로그인에 실패했습니다.");
+        }
+        return await parseBodyOnce(res);
+    }
+
+    form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        setMessage("", "");
+        btn.disabled = true;
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if(!email || !password){
+            setMessage("이메일과 비밀번호를 모두 입력하세요.");
+            btn.disabled = false;
+            return;
+        }
+
+        try{
+            await login(email, password);
+            setMessage("로그인 성공! 메인으로 이동 중...", "success");
+            window.location.href = REDIRECT_AFTER_LOGIN;
+        }catch(err){
+            setMessage("로그인 실패: " + (err?.message || "서버 오류"));
+        }finally{
+            btn.disabled = false;
+        }
+    });
+>>>>>>> master
+</script>
+</body>
+</html>
