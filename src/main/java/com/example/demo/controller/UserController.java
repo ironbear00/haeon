@@ -8,28 +8,16 @@ import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = "http://localhost:3000") // CORS 허용
 @RequiredArgsConstructor
 public class UserController {
 
     public static final String SESSION_USER_ID = "LOGIN_USER_ID";
 
     private final UserService userService;
-
-    @GetMapping("login")
-    public String LoginPage(){
-        return "login";
-    }
-
-    @GetMapping("signup")
-    public String SignupPage(){
-        return "signup";
-    }
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest req) {
@@ -50,7 +38,6 @@ public class UserController {
                 user.getBirthDate(),
                 user.getGender()
         );
-
         return ResponseEntity.ok(res);
     }
 
@@ -65,9 +52,4 @@ public class UserController {
         return ResponseEntity.ok(me);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpSession session) {
-        session.invalidate();
-        return ResponseEntity.noContent().build();
-    }
 }

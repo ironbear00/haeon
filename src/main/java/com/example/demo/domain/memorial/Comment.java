@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.checkerframework.checker.units.qual.A;
 
 @Getter
 @Setter
@@ -16,6 +15,7 @@ import org.checkerframework.checker.units.qual.A;
 @Entity
 @Table(name = "comment")
 public class Comment extends BaseTimeEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,8 +28,11 @@ public class Comment extends BaseTimeEntity {
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
+    @JoinColumn(name = "author_id") // nullable = false 제거
     private User author;
+
+    @Column(length = 255)
+    private String authorName;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

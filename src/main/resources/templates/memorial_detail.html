@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
     <title>추모공간 상세 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
@@ -13,31 +12,36 @@
 
 <main>
     <div id="deceased_info_detail">
-        <img th:src="@{/images/profile.jpg}" alt="고인 프로필 사진" style="width:200px; border-radius: 50%;">
-        <p><strong>성함:</strong> 故 OOO님</p>
-        <p><strong>생년월일:</strong> 1950.01.01</p>
-        <p><strong>사망일:</strong> 2025.07.28</p>
-        <p><strong>장례식 정보:</strong> 부산광역시 부산진구</p>
-        <p><strong>추모글:</strong> 항상 밝고 긍정적이던 네 모습이 아직도 눈에 선하다. 그곳에서는 편안하길 바라. 정말 고맙고 사랑해.</p>
+        <img th:src="@{${post.deceasedPhotoPath}}" alt="고인 프로필 사진" style="width:200px; border-radius: 50%;">
+
+        <p><strong>성함:</strong> <span th:text="|故 ${post.deceased.name}님|"></span></p>
+        <p><strong>생년월일:</strong> <span th:text="${#temporals.format(post.deceased.birthDate, 'yyyy-MM-dd')}"></span></p>
+        <p><strong>사망일:</strong> <span th:text="${#temporals.format(post.deceased.deathDate, 'yyyy-MM-dd')}"></span></p>
+        <p><strong>추모글:</strong> <span th:text="${post.content}"></span></p>
     </div>
 
     <hr>
 
     <div id="comment_section">
         <h2>댓글 남기기</h2>
-        <form action="/memorial/comment" method="post">
+
+        <form th:action="@{/memorial/comment/{uuid}(uuid=${post.uuidLink})}" method="post">
+            <p sec:authorize="isAnonymous()">
+                <input type="text" name="authorName" placeholder="이름" required>
+            </p>
             <p>
-                <textarea name="comment" placeholder="댓글을 남겨주세요." rows="3" cols="50" required></textarea>
+                <textarea name="content" placeholder="댓글을 남겨주세요." rows="3" cols="50" required></textarea>
             </p>
             <button type="submit">댓글 등록</button>
         </form>
 
         <h3>댓글 목록</h3>
-        <div style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
-            <p><strong>김철수:</strong> 삼가 고인의 명복을 빕니다.</p>
+        <div th:each="comment : ${post.comments}" style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
+            <p><strong><span th:text="${comment.author?.name ?: comment.authorName}"></span>:</strong> <span th:text="${comment.content}"></span></p>
         </div>
-        <div style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
-            <p><strong>박영희:</strong> 좋은 곳으로 가시길 바랍니다.</p>
+
+        <div th:if="${#lists.isEmpty(post.comments)}">
+            <p>아직 작성된 댓글이 없습니다.</p>
         </div>
     </div>
     <p><a href="/memorial">목록으로 돌아가기</a></p>
