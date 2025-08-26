@@ -34,7 +34,7 @@ public class SnsRequest extends BaseTimeEntity {
     private SnsPlatform snsPlatform;
 
     @Column(nullable = false, length = 50)
-    private String status = "SUBMITTED"; // 기본값
+    private String status = "SUBMITTED";
 
     @OneToMany(mappedBy = "snsRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestFile> files=new ArrayList<>();

@@ -66,6 +66,7 @@ public class SnsRequestService {
             snsRequest.setRequester(requester);
             snsRequest.setDeceased(deceased);
             snsRequest.setSnsPlatform(platform);
+            snsRequest.setReason(dto.getReason());
 
             snsRequest.addFile(createRequestFile(relationCertPath, relationType));
             snsRequest.addFile(createRequestFile(deathCertPath, deathType));
