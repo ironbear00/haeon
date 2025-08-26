@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>추모글 작성하기 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
+
+<main>
+    <form action="/memorial/write" method="post">
+        <h2>고인 정보</h2>
+        <p>
+            <label for="deceased_name">성함:</label>
+            <input type="text" id="deceased_name" name="deceased_name" required>
+        </p>
+        <p>
+            <label for="birth_date">생년월일:</label>
+            <input type="date" id="birth_date" name="birth_date" required>
+        </p>
+        <p>
+            <label for="death_date">사망일:</label>
+            <input type="date" id="death_date" name="death_date" required>
+        </p>
+
+        <h2>추모글 내용</h2>
+        <textarea id="memorial_post" name="memorial_post" rows="10" cols="50" placeholder="고인을 추억하는 글을 작성해 주세요." required></textarea>
+
+        <button type="submit">등록하기</button>
+    </form>
+</main>
+
+<div th:replace="~{common/footer :: footerFragment}"></div>
+
+<script>
+    const API_BASE = "http://localhost:8080";
+    const ME_ENDPOINT = API_BASE + "/user/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const authStatus = document.getElementById("authStatus");
+
+        async function fetchMe() {
+            try {
+                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+                if (res.ok) {
+                    return await res.json();
+                }
+                return null;
+            } catch (err) {
+                console.error("Failed to fetch user info:", err);
+                return null;
+            }
+        }
+
+        function updateUI(user) {
+            if (!authStatus) return;
+            authStatus.innerHTML = "";
+            if (user) {
+                authStatus.innerHTML = `
+                        <span class="user-status-item">${user.name}님</span>
+                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                    `;
+                document.getElementById("logoutBtn").addEventListener("click", async () => {
+                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    window.location.reload();
+                });
+            } else {
+                authStatus.innerHTML = `
+                        <a class="user-status-btn" href="/user/login">로그인</a>
+                        <a class="user-status-btn" href="/user/signup">회원가입</a>
+                    `;
+            }
+        }
+        (async () => {
+            const user = await fetchMe();
+            updateUI(user);
+        })();
+    });
+</script>
+
+</body>
+</html>

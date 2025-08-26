@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>디지털 자산 관리 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
+
+<main>
+    <h2>계정 정리 신청</h2>
+    <form action="/requests/apply" method="post">
+        <p>
+            <label for="sns_platform">플랫폼:</label>
+            <input type="text" id="sns_platform" name="sns_platform" placeholder="예: 페이스북, 인스타그램" required>
+        </p>
+        <p>
+            <label for="deceased_account">계정 정보:</label>
+            <input type="text" id="deceased_account" name="deceased_account" placeholder="고인의 아이디 또는 URL" required>
+        </p>
+        <button type="submit">정리 신청하기</button>
+    </form>
+
+    <hr>
+
+    <h2>신청 진행 상황</h2>
+    <table border="1" style="width:100%;">
+        <thead>
+        <tr>
+            <th>플랫폼</th>
+            <th>상태</th>
+            <th>신청일</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>페이스북</td>
+            <td>처리 중</td>
+            <td>2025.07.28</td>
+        </tr>
+        <tr>
+            <td>인스타그램</td>
+            <td>완료</td>
+            <td>2025.07.25</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+
+<div th:replace="~{common/footer :: footerFragment}"></div>
+
+<script>
+    const API_BASE = "http://localhost:8080";
+    const ME_ENDPOINT = API_BASE + "/user/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const authStatus = document.getElementById("authStatus");
+
+        async function fetchMe() {
+            try {
+                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+                if (res.ok) {
+                    return await res.json();
+                }
+                return null;
+            } catch (err) {
+                console.error("Failed to fetch user info:", err);
+                return null;
+            }
+        }
+
+        function updateUI(user) {
+            if (!authStatus) return;
+            authStatus.innerHTML = "";
+            if (user) {
+                authStatus.innerHTML = `
+                        <span class="user-status-item">${user.name}님</span>
+                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                    `;
+                document.getElementById("logoutBtn").addEventListener("click", async () => {
+                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    window.location.reload();
+                });
+            } else {
+                authStatus.innerHTML = `
+                        <a class="user-status-btn" href="/user/login">로그인</a>
+                        <a class="user-status-btn" href="/user/signup">회원가입</a>
+                    `;
+            }
+        }
+        (async () => {
+            const user = await fetchMe();
+            updateUI(user);
+        })();
+    });
+</script>
+
+</body>
+</html>

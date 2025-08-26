@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>절차 안내 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+
+<div th:replace="~{common/header :: headerFragment}"></div>
+
+<main>
+    <section>
+        <h2>진행 단계</h2>
+        <ol>
+            <li>
+                <strong>의뢰 접수</strong> — <a href="/requests/dashboard">대시보드</a>에서 플랫폼과 계정을 등록합니다.
+            </li>
+            <li>
+                <strong>관계 확인 & 서류 제출</strong> — 가족관계 증명서, 사망진단서(또는 사체검안서) 등 필요한 서류를 업로드합니다.
+            </li>
+            <li>
+                <strong>플랫폼 정책 검토</strong> — 각 서비스(구글/애플/메타 등)의 사후 처리 정책을 확인합니다.
+            </li>
+            <li>
+                <strong>처리 진행</strong> — 계정 삭제/추모 전환/데이터 백업 등 선택한 방식으로 요청을 제출합니다.
+            </li>
+            <li>
+                <strong>결과 보고</strong> — 처리 결과, 증빙(요청 번호/확인 메일 캡처 등)을 대시보드에 기록해 드립니다.
+            </li>
+            <li>
+                <strong>사후 관리</strong> — 온라인 추모공간 운영 및 보존 기간 알림을 제공합니다.
+            </li>
+        </ol>
+    </section>
+
+    <hr>
+
+    <section>
+        <h2>필요 서류 체크리스트</h2>
+        <ul>
+            <li>신청인 신분증 사본</li>
+            <li>가족관계 증명서 (또는 법정 대리 권한 증빙)</li>
+            <li>사망 사실 증명(사망진단서/사체검안서 중 택1)</li>
+            <li>계정 정보(프로필 URL, 사용자명, 이메일 등)</li>
+            <li>처리 요청 유형(삭제/추모 전환/백업) 선택서</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>예상 처리 기간(참고)</h2>
+        <table border="1" style="width:100%;">
+            <thead>
+            <tr>
+                <th>단계</th>
+                <th>내용</th>
+                <th>예상 기간</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>서류 검토</td>
+                <td>제출 서류 확인 및 보완 요청</td>
+                <td>1~3영업일</td>
+            </tr>
+            <tr>
+                <td>플랫폼 요청</td>
+                <td>정책 확인 후 공식 접수</td>
+                <td>1~5영업일</td>
+            </tr>
+            <tr>
+                <td>플랫폼 처리</td>
+                <td>삭제/추모 전환/백업 진행</td>
+                <td>플랫폼별 상이</td>
+            </tr>
+            <tr>
+                <td>결과 보고</td>
+                <td>증빙 및 요약 보고서 제공</td>
+                <td>당일~1영업일</td>
+            </tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.9rem; color:#555;">
+            * 실제 기간은 플랫폼 대응 속도와 제출 서류 상태에 따라 달라질 수 있습니다.
+        </p>
+    </section>
+
+    <section>
+        <h2>진행 중 실시간 알림</h2>
+        <p>
+            <a href="/requests/dashboard">대시보드</a>에서 신청 건별 진행 상태(접수/검토/요청/완료)를 확인할 수 있으며,
+            단계 변경 시 안내 메시지를 제공합니다.
+        </p>
+    </section>
+
+    <hr>
+
+    <section>
+        <h2>유의사항</h2>
+        <ul>
+            <li>계정 비밀번호는 일절 수집·제공하지 않습니다.</li>
+            <li>요청 유형은 플랫폼 정책 범위 내에서만 진행됩니다.</li>
+            <li>백업 가능한 데이터 종류와 범위는 서비스사 정책에 따라 제한될 수 있습니다.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>바로 시작하기</h2>
+        <p>
+            아래 버튼을 눌러 고인의 계정을 등록하고 절차를 시작하세요.
+        </p>
+        <p>
+            <a href="/requests/dashboard">대시보드로 이동</a>
+        </p>
+    </section>
+</main>
+
+<div th:replace="~{common/footer :: footerFragment}"></div>
+
+<script>
+    const API_BASE = "http://localhost:8080";
+    const ME_ENDPOINT = API_BASE + "/user/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const authStatus = document.getElementById("authStatus");
+
+        async function fetchMe() {
+            try {
+                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+                if (res.ok) {
+                    return await res.json();
+                }
+                return null;
+            } catch (err) {
+                console.error("Failed to fetch user info:", err);
+                return null;
+            }
+        }
+
+        function updateUI(user) {
+            if (!authStatus) return;
+            authStatus.innerHTML = "";
+            if (user) {
+                authStatus.innerHTML = `
+                        <span class="user-status-item">${user.name}님</span>
+                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                    `;
+                document.getElementById("logoutBtn").addEventListener("click", async () => {
+                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    window.location.reload();
+                });
+            } else {
+                authStatus.innerHTML = `
+                        <a class="user-status-btn" href="/user/login">로그인</a>
+                        <a class="user-status-btn" href="/user/signup">회원가입</a>
+                    `;
+            }
+        }
+        (async () => {
+            const user = await fetchMe();
+            updateUI(user);
+        })();
+    });
+</script>
+
+</body>
+</html>
