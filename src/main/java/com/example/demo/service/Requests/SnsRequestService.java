@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -48,30 +49,14 @@ public class SnsRequestService {
         }
         Deceased deceased = deceasedList.get(0);
 
-        List<RequestFile> savedFiles = new ArrayList<>();
-        Map<String, FileType> fileTypes = Map.of(
-                "RELATION_CERTIFICATION", fileTypeRepository.findByCode("RELATION_CERTIFICATION").orElseThrow(),
-                "DEATH_CERTIFICATE", fileTypeRepository.findByCode("DEATH_CERTIFICATE").orElseThrow(),
-                "APPLICANT_ID", fileTypeRepository.findByCode("APPLICANT_ID").orElseThrow()
-        );
-
         String relationCertPath = fileStore.storeFile(dto.getRelationCertification());
-        RequestFile relationFile = new RequestFile();
-        relationFile.setFilePath(relationCertPath);
-        relationFile.setFileType(fileTypes.get("RELATION_CERTIFICATION"));
-        savedFiles.add(requestFileRepository.save(relationFile));
-
         String deathCertPath = fileStore.storeFile(dto.getDeathCertificate());
-        RequestFile deathFile = new RequestFile();
-        deathFile.setFilePath(deathCertPath);
-        deathFile.setFileType(fileTypes.get("DEATH_CERTIFICATE"));
-        savedFiles.add(requestFileRepository.save(deathFile));
-
         String applicantIdPath = fileStore.storeFile(dto.getApplicantId());
-        RequestFile applicantFile = new RequestFile();
-        applicantFile.setFilePath(applicantIdPath);
-        applicantFile.setFileType(fileTypes.get("APPLICANT_ID"));
-        savedFiles.add(requestFileRepository.save(applicantFile));
+
+        Supplier<IllegalArgumentException> notFound = () -> new IllegalArgumentException("FileType 코드를 찾을 수 없습니다.");
+        FileType relationType = fileTypeRepository.findByCode("RELATION_CERTIFICATION").orElseThrow(notFound);
+        FileType deathType = fileTypeRepository.findByCode("DEATH_CERTIFICATE").orElseThrow(notFound);
+        FileType applicantIdType = fileTypeRepository.findByCode("APPLICANT_ID").orElseThrow(notFound);
 
         for (String platformName : dto.getPlatforms()) {
             SnsPlatform platform = snsPlatformRepository.findByName(platformName)
@@ -82,11 +67,19 @@ public class SnsRequestService {
             snsRequest.setDeceased(deceased);
             snsRequest.setSnsPlatform(platform);
 
-            for (RequestFile file : savedFiles) {
-                snsRequest.addFile(file);
-            }
+            snsRequest.addFile(createRequestFile(relationCertPath, relationType));
+            snsRequest.addFile(createRequestFile(deathCertPath, deathType));
+            snsRequest.addFile(createRequestFile(applicantIdPath, applicantIdType));
 
             snsRequestRepository.save(snsRequest);
         }
+    }
+
+
+    private RequestFile createRequestFile(String filePath, FileType fileType) {
+        RequestFile requestFile = new RequestFile();
+        requestFile.setFilePath(filePath);
+        requestFile.setFileType(fileType);
+        return requestFile;
     }
 }
