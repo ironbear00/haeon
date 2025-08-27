@@ -15,17 +15,19 @@
     <a href="/memorial/memorial_write">추모글 작성하기</a>
 
     <div id="post_list">
-        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-            <h3><a href="/memorial/memorial_detail">故 OOO님 추모공간</a></h3>
-            <p>소중한 사람을 추억하고, 따뜻한 마음을 나누는 공간입니다.</p>
-            <small>게시자: 홍길동</small>
+        <div th:each="post : ${postList}" style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+            <h3>
+                <a th:href="@{/memorial/password_check/{uuid}(uuid=${post.uuidLink})}">
+                    <span th:text="|故 ${post.title}님 추모공간|"></span>
+                </a>
+            </h3>
+            <p th:text="${post.content}"></p>
+            <small th:text="|게시자: ${post.author.name}|"></small>
         </div>
+    </div>
 
-        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-            <h3><a href="/memorial/memorial_detail">故 001님 추모공간</a></h3>
-            <p>아빠, 아빠 덕분에 행복했어요. 항상 저를 응원해 주셔서 감사합니다.</p>
-            <small>게시자: 김철수</small>
-        </div>
+    <div th:if="${#lists.isEmpty(postList)}">
+        <p>작성된 추모글이 없습니다.</p>
     </div>
 </main>
 

@@ -3,21 +3,14 @@ package com.example.demo.domain.memorial;
 import com.example.demo.domain.Deceased;
 import com.example.demo.domain.User;
 import com.example.demo.domain.utils.BaseTimeEntity;
-import com.example.demo.domain.utils.Status;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "post")
 public class Post extends BaseTimeEntity {
@@ -43,20 +36,14 @@ public class Post extends BaseTimeEntity {
     private String deceasedPhotoPath;
 
     @Column(nullable = false, length = 50)
-    private String status = "SUBMITTED"; // 기본값
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments=new ArrayList<>();
+    private String status = "SUBMITTED";
 
     @Column(nullable = false, unique = true, length = 100)
-    private String uuidLink= UUID.randomUUID().toString();
+    private String uuidLink = UUID.randomUUID().toString();
 
     @Column(nullable = false, length = 255)
     private String accessPassword;
 
-    public void addCommnet(Comment comment)
-    {
-        comments.add(comment);
-        comment.setPost(this);
-    }
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
 }
