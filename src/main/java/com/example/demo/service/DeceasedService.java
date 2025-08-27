@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.domain.Deceased;
-<<<<<<< HEAD
+
 import com.example.demo.domain.User;
 import com.example.demo.dto.DeceasedRequest;
 import com.example.demo.dto.DeceasedResponse;
@@ -10,22 +10,21 @@ import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-=======
-import com.example.demo.repository.DeceasedRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
->>>>>>> master
+
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-<<<<<<< HEAD
 @Transactional
 public class DeceasedService {
-
     private final DeceasedRepository deceasedRepository;
+
     private final UserRepository userRepository;
+
+    public List<Deceased> findMyDeceasedList(Long loggedInUserId) {
+        return deceasedRepository.findByManagerUser_Id(loggedInUserId);
+    }
 
     @Transactional
     public DeceasedResponse createDeceased(Long userId, DeceasedRequest req) {
@@ -52,8 +51,8 @@ public class DeceasedService {
                 .map(this::deceasedResponse)
                 .toList();
     }
-
     // ✅ 단건 조회 (수정 화면 등에 사용)
+
     @Transactional(readOnly = true)
     public DeceasedResponse getDeceasedById(Long deceasedId) {
         Deceased d = deceasedRepository.findById(deceasedId)
@@ -81,7 +80,6 @@ public class DeceasedService {
     public void deleteDeceased(Long deceasedId) {
         deceasedRepository.deleteById(deceasedId);
     }
-
     // 공통 변환 메서드
     private DeceasedResponse deceasedResponse(Deceased d) {
         return new DeceasedResponse(
@@ -94,14 +92,6 @@ public class DeceasedService {
                 d.getFuneralDate()
         );
     }
-}
-=======
-public class DeceasedService {
 
-    private final DeceasedRepository deceasedRepository;
-
-    public List<Deceased> findMyDeceasedList(Long loggedInUserId) {
-        return deceasedRepository.findByManagerUser_Id(loggedInUserId);
-    }
 }
->>>>>>> master
+
