@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>내 정보</title>
+
+</head>
+<body>
+<h1>내 정보</h1>
+<form id="updateForm">
+
+  <div>
+    <label for="name">이름</label>
+    <input id="name" type="text" disabled />
+  </div>
+
+  <div>
+    <label for="email">이메일</label>
+    <input id="email" type="email" disabled />
+  </div>
+
+  <div>
+    <label for="phone">전화번호</label>
+    <input id="phone" type="tel" placeholder="010-1234-5678"
+           inputmode="tel" pattern="^\d{2,3}-\d{3,4}-\d{4}$"
+           title="010-1234-5678 형식" />
+  </div>
+
+  <div>
+    <label for="birthDate">생년월일</label>
+    <input id="birthDate" type="date" />
+  </div>
+  <button type="submit">수정하기</button>
+</form>
+<p id="status"></p>
+
+<script>
+  let originalData = {}; // 원본 데이터 저장용
+
+  function loadProfile() {
+
+    fetch('/mypage/profile', {
+      method: 'GET',
+      credentials: 'include'
+
+    })
+            .then(res => {
+              if (!res.ok) throw new Error("로그인 필요");
+              return res.json();
+            })
+
+            .then(data => {
+              document.getElementById('name').value = data.name;
+              document.getElementById('email').value = data.email;
+              document.getElementById('phone').value = data.phone || '';
+              document.getElementById('birthDate').value = data.birthDate || '';
+
+              originalData = {
+                phone: data.phone || '',
+                birthDate: data.birthDate || ''
+              };
+
+            })
+
+            .catch(err => {
+              console.error('Error:', err);
+              alert("로그인이 필요합니다.");
+              window.location.href = 'login.html';
+            });
+
+  }
+
+
+
+  // 수정하기
+
+  document.getElementById('updateForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const phoneVal = document.getElementById('phone').value;
+    const birthVal = document.getElementById('birthDate').value;
+
+    if (phoneVal === originalData.phone && birthVal === originalData.birthDate) {
+      alert("변경된 내용이 없습니다.");
+      return;
+
+    }
+
+    const reqData = { phone: phoneVal, birthDate: birthVal };
+
+    fetch('/mypage/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(reqData)
+
+    })
+
+            .then(res => {
+              if (!res.ok) throw new Error("수정 실패");
+              return res.json();
+            })
+
+            .then(updated => {
+              alert("수정 완료!");
+
+// 원본 데이터 갱신
+
+              originalData.phone = updated.phone;
+              originalData.birthDate = updated.birthDate;
+
+            })
+
+            .catch(err => {
+              console.error('Error:', err);
+              alert("수정 중 오류 발생");
+            });
+
+  });
+
+  loadProfile();
+
+</script>
+</body>
+</html>

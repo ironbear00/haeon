@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html><!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>고인 목록</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+</head>
+<body class="container py-4">
+
+<h1 class="mb-4">고인 목록</h1>
+
+<a href="/deceased/create" class="btn btn-primary mb-3">+ 고인 등록</a>
+
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>이름</th>
+        <th>연락처</th>
+        <th>생년월일</th>
+        <th>성별</th>
+        <th>사망일</th>
+        <th>장례일</th>
+        <th>관리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="d : ${deceasedList}">
+        <td th:text="${d.id}"></td>
+        <td th:text="${d.name}"></td>
+        <td th:text="${d.phone}"></td>
+        <td th:text="${d.birthDate}"></td>
+        <td th:text="${d.gender}"></td>
+        <td th:text="${d.deathDate}"></td>
+        <td th:text="${d.funeralDate}"></td>
+        <td>
+            <a th:href="@{/deceased/edit(id=${d.id})}" class="btn btn-sm btn-warning">수정</a>
+            <form th:action="@{/deceased/delete(id=${d.id})}" method="post" style="display:inline">
+                <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
