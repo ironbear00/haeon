@@ -9,6 +9,10 @@ import java.util.List;
 
 @Repository
 public interface DeceasedRepository extends JpaRepository<Deceased, Long> {
+<<<<<<< HEAD
     List<Deceased> findByManagerUser_Id(Long UserId);
 
+=======
+    List<Deceased> findByManagerUser_Id(Long managerUserId);
+>>>>>>> master
 }
