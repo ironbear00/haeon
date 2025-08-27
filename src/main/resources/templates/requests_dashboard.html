@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
-    <title>디지털 자산 관리 - 헤온</title>
+    <title>신청 현황 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="stylesheet" th:href="@{/css/main.css}" />
@@ -12,21 +12,6 @@
 <div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
-    <h2>계정 정리 신청</h2>
-    <form action="/requests/apply" method="post">
-        <p>
-            <label for="sns_platform">플랫폼:</label>
-            <input type="text" id="sns_platform" name="sns_platform" placeholder="예: 페이스북, 인스타그램" required>
-        </p>
-        <p>
-            <label for="deceased_account">계정 정보:</label>
-            <input type="text" id="deceased_account" name="deceased_account" placeholder="고인의 아이디 또는 URL" required>
-        </p>
-        <button type="submit">정리 신청하기</button>
-    </form>
-
-    <hr>
-
     <h2>신청 진행 상황</h2>
     <table border="1" style="width:100%;">
         <thead>
