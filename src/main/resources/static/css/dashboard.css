@@ -1,0 +1,49 @@
+main table {
+    width: 100%;
+    border-collapse: collapse; /* 테두리 한 줄로 합치기 */
+    margin-top: 20px;
+    font-size: 15px;
+}
+
+main th, main td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+main thead th {
+    background-color: var(--bg);
+    font-weight: 600;
+    color: var(--muted);
+}
+
+main tbody tr:last-child td {
+    border-bottom: none;
+}
+
+main tbody tr:hover {
+    background-color: var(--bg);
+}
+
+.status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.status.submitted {
+    background-color: #eef2ff;
+    color: #4338ca;
+}
+
+.status.completed {
+    background-color: #dcfce7;
+    color: #065f46;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 50px;
+    color: var(--muted);
+}
