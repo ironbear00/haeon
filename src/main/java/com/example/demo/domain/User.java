@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor @AllArgsConstructor
 @Entity
 @Table(name = "users")
-@AttributeOverrides({ // 상속 필드 컬럼명 매핑 (name/phone/birthDate/gender)
+@AttributeOverrides({
         @AttributeOverride(name = "name",      column = @Column(name = "name",       nullable = false, length = 100)),
         @AttributeOverride(name = "phone",     column = @Column(name = "phone",      length = 255)),
         @AttributeOverride(name = "birthDate", column = @Column(name = "birth_date")),
@@ -31,18 +31,11 @@ public class User extends Person {
 
     @Convert(converter = AuthProviderAttributeConverter.class)
     @Column(name = "provider", length = 20, nullable = false)
-    private AuthProvider provider;
+    private AuthProvider provider=AuthProvider.LOCAL;
 
     @Column(name = "provider_id", length = 255)
     private String providerId;
 
     @OneToMany(mappedBy = "managerUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Deceased> deceasedList = new ArrayList<>();
-
-    // [수정] provider가 null로 저장되는 것 방지 (LOCAL 기본값 등)
-    private void applyDefaults() { // [수정]
-        if (this.provider == null) {
-            this.provider = AuthProvider.LOCAL; // [수정] 프로젝트 기본 정책에 맞게 변경 가능
-        }
-    }
 }
