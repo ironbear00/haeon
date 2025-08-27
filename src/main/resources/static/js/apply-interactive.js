@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const submitBtn = document.getElementById('submitBtn');
     const resetBtn = document.getElementById('resetBtn');
 
+
     function showStep(stepIndex) {
         steps.forEach((step, index) => {
             step.style.display = index === stepIndex ? 'flex' : 'none';
@@ -45,7 +46,14 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    startBtn.addEventListener('click', nextStep);
+    startBtn.addEventListener('click', () => {
+        if (currentUser) {
+            nextStep();
+        } else {
+            alert('로그인 후 이용할 수 있습니다.');
+            window.location.href = '/user/login';
+        }
+    });
 
     document.querySelectorAll('#dropzone-doc1, #dropzone-doc2, #dropzone-doc3').forEach(zone => {
         const fileInput = zone.querySelector('.file-input');

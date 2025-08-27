@@ -2,6 +2,8 @@ const API_BASE = "http://localhost:8080";
 const ME_ENDPOINT = API_BASE + "/user/me";
 const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
 
+let currentUser = null;
+
 document.addEventListener("DOMContentLoaded", function() {
     const authStatus = document.getElementById("authStatus");
 
@@ -39,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     (async () => {
-        const user = await fetchMe();
-        updateUI(user);
+        currentUser = await fetchMe();
+        updateUI(currentUser);
     })();
 });
