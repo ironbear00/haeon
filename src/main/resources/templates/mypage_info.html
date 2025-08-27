@@ -1,125 +1,120 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>내 정보</title>
-
+    <meta charset="UTF-8" />
+    <title>내 정보 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
-<h1>내 정보</h1>
-<form id="updateForm">
 
-  <div>
-    <label for="name">이름</label>
-    <input id="name" type="text" disabled />
-  </div>
+<div th:replace="~{common/header :: headerFragment}"></div>
 
-  <div>
-    <label for="email">이메일</label>
-    <input id="email" type="email" disabled />
-  </div>
+<main>
+    <h1>내 정보</h1>
+    <form id="updateForm">
 
-  <div>
-    <label for="phone">전화번호</label>
-    <input id="phone" type="tel" placeholder="010-1234-5678"
-           inputmode="tel" pattern="^\d{2,3}-\d{3,4}-\d{4}$"
-           title="010-1234-5678 형식" />
-  </div>
+        <div>
+            <label for="name">이름</label>
+            <input id="name" type="text" disabled />
+        </div>
 
-  <div>
-    <label for="birthDate">생년월일</label>
-    <input id="birthDate" type="date" />
-  </div>
-  <button type="submit">수정하기</button>
-</form>
-<p id="status"></p>
+        <div>
+            <label for="email">이메일</label>
+            <input id="email" type="email" disabled />
+        </div>
+
+        <div>
+            <label for="phone">전화번호</label>
+            <input id="phone" type="tel" placeholder="010-1234-5678"
+                   inputmode="tel" pattern="^\d{2,3}-\d{3,4}-\d{4}$"
+                   title="010-1234-5678 형식" />
+        </div>
+
+        <div>
+            <label for="birthDate">생년월일</label>
+            <input id="birthDate" type="date" />
+        </div>
+        <button type="submit">수정하기</button>
+    </form>
+    <p id="status"></p>
+</main>
+
+<div th:replace="~{common/footer :: footerFragment}"></div>
+
+<script th:src="@{/js/common.js}"></script>
 
 <script>
-  let originalData = {}; // 원본 데이터 저장용
+    let originalData = {};
 
-  function loadProfile() {
-
-    fetch('/mypage/profile', {
-      method: 'GET',
-      credentials: 'include'
-
-    })
+    function loadProfile() {
+        fetch('/user/me', {
+            method: 'GET',
+            credentials: 'include'
+        })
             .then(res => {
-              if (!res.ok) throw new Error("로그인 필요");
-              return res.json();
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        throw new Error("로그인이 필요합니다.");
+                    }
+                    throw new Error("프로필 로딩 실패");
+                }
+                return res.json();
             })
-
             .then(data => {
-              document.getElementById('name').value = data.name;
-              document.getElementById('email').value = data.email;
-              document.getElementById('phone').value = data.phone || '';
-              document.getElementById('birthDate').value = data.birthDate || '';
-
-              originalData = {
-                phone: data.phone || '',
-                birthDate: data.birthDate || ''
-              };
-
+                document.getElementById('name').value = data.name;
+                document.getElementById('email').value = data.email;
+                document.getElementById('phone').value = data.phone || '';
+                document.getElementById('birthDate').value = data.birthDate || '';
+                originalData = {
+                    phone: data.phone || '',
+                    birthDate: data.birthDate || ''
+                };
             })
-
             .catch(err => {
-              console.error('Error:', err);
-              alert("로그인이 필요합니다.");
-              window.location.href = 'login.html';
+                console.error('Error:', err);
+                alert(err.message);
+                if (err.message === "로그인이 필요합니다.") {
+                    window.location.href = '/user/login';
+                }
             });
-
-  }
-
-
-
-  // 수정하기
-
-  document.getElementById('updateForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const phoneVal = document.getElementById('phone').value;
-    const birthVal = document.getElementById('birthDate').value;
-
-    if (phoneVal === originalData.phone && birthVal === originalData.birthDate) {
-      alert("변경된 내용이 없습니다.");
-      return;
-
     }
 
-    const reqData = { phone: phoneVal, birthDate: birthVal };
+    document.getElementById('updateForm').addEventListener('submit', function (e) {
+        e.preventDefault();
 
-    fetch('/mypage/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(reqData)
+        const phoneVal = document.getElementById('phone').value;
+        const birthVal = document.getElementById('birthDate').value;
 
-    })
+        if (phoneVal === originalData.phone && birthVal === originalData.birthDate) {
+            alert("변경된 내용이 없습니다.");
+            return;
+        }
 
+        const reqData = { phone: phoneVal, birthDate: birthVal };
+
+        fetch('/api/user/profile', { // 정보 수정 API 경로
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(reqData)
+        })
             .then(res => {
-              if (!res.ok) throw new Error("수정 실패");
-              return res.json();
+                if (!res.ok) throw new Error("수정 실패");
+                return res.json();
             })
-
             .then(updated => {
-              alert("수정 완료!");
-
-// 원본 데이터 갱신
-
-              originalData.phone = updated.phone;
-              originalData.birthDate = updated.birthDate;
-
+                alert("수정 완료!");
+                originalData.phone = updated.phone;
+                originalData.birthDate = updated.birthDate;
             })
-
             .catch(err => {
-              console.error('Error:', err);
-              alert("수정 중 오류 발생");
+                console.error('Error:', err);
+                alert("수정 중 오류 발생");
             });
+    });
 
-  });
-
-  loadProfile();
-
+    loadProfile();
 </script>
 </body>
 </html>

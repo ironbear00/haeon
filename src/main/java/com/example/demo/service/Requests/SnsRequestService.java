@@ -7,6 +7,7 @@ import com.example.demo.domain.requests.SnsRequest;
 import com.example.demo.domain.utils.FileType;
 import com.example.demo.domain.utils.SnsPlatform;
 import com.example.demo.dto.requests.SnsRequestDTO;
+import com.example.demo.dto.requests.SnsRequestSummaryDTO;
 import com.example.demo.repository.DeceasedRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.requests.RequestFileRepository;
@@ -14,17 +15,16 @@ import com.example.demo.repository.requests.SnsRequestRepository;
 import com.example.demo.repository.utils.FileTypeRepository;
 import com.example.demo.repository.utils.SnsPlatformRepository;
 import com.example.demo.service.utils.FileStore;
-import jakarta.persistence.Table;
-import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +66,7 @@ public class SnsRequestService {
             snsRequest.setRequester(requester);
             snsRequest.setDeceased(deceased);
             snsRequest.setSnsPlatform(platform);
+            snsRequest.setReason(dto.getReason());
 
             snsRequest.addFile(createRequestFile(relationCertPath, relationType));
             snsRequest.addFile(createRequestFile(deathCertPath, deathType));
@@ -75,11 +76,18 @@ public class SnsRequestService {
         }
     }
 
-
     private RequestFile createRequestFile(String filePath, FileType fileType) {
         RequestFile requestFile = new RequestFile();
         requestFile.setFilePath(filePath);
         requestFile.setFileType(fileType);
         return requestFile;
+    }
+
+    @Transactional(readOnly = true)
+    public List<SnsRequestSummaryDTO> findMyRequests(Long userId) {
+        return snsRequestRepository.findByRequester_IdOrderByCreateAtDesc(userId)
+                .stream()
+                .map(SnsRequestSummaryDTO::new) // SnsRequest -> SnsRequestSummaryDto 변환
+                .collect(Collectors.toList());
     }
 }

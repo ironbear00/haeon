@@ -2,13 +2,19 @@ document.addEventListener("DOMContentLoaded", function() {
     const steps = document.querySelectorAll('.form-step');
     let currentStep = 0;
     let uploadedFiles = {};
+    let optionalFiles = [];
+    let requestContent = "";
     let selectedPlatforms = [];
 
     const startBtn = document.getElementById('startBtn');
+    const optionalDocNextBtn = document.getElementById('optionalDocNextBtn');
     const platformNextBtn = document.getElementById('platformNextBtn');
+    const contentNextBtn = document.getElementById('contentNextBtn');
+    const requestContentInput = document.getElementById('request-content');
     const editBtn = document.getElementById('editBtn');
     const submitBtn = document.getElementById('submitBtn');
     const resetBtn = document.getElementById('resetBtn');
+
 
     function showStep(stepIndex) {
         steps.forEach((step, index) => {
@@ -41,10 +47,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     startBtn.addEventListener('click', () => {
-        nextStep();
+        if (currentUser) {
+            nextStep();
+        } else {
+            alert('로그인 후 이용할 수 있습니다.');
+            window.location.href = '/user/login';
+        }
     });
 
-    document.querySelectorAll('.drop-zone').forEach(zone => {
+    document.querySelectorAll('#dropzone-doc1, #dropzone-doc2, #dropzone-doc3').forEach(zone => {
         const fileInput = zone.querySelector('.file-input');
         const fileStatus = zone.querySelector('.file-status');
         const prompt = zone.querySelector('p');
@@ -55,9 +66,10 @@ document.addEventListener("DOMContentLoaded", function() {
             const file = files[0];
             prompt.style.display = 'none';
             fileStatus.textContent = `✅ ${file.name} (업로드 완료)`;
-            uploadedFiles[stepId] = file; // ★ 수정: 파일 객체 자체를 저장
+            uploadedFiles[stepId] = file;
             setTimeout(() => nextStep(), 1000);
         };
+
         zone.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', () => handleFile(fileInput.files));
         zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
@@ -68,6 +80,33 @@ document.addEventListener("DOMContentLoaded", function() {
             handleFile(e.dataTransfer.files);
         });
     });
+
+    const optionalDropZone = document.getElementById('dropzone-optional');
+    const optionalFileInput = optionalDropZone.querySelector('.file-input');
+    const optionalPrompt = optionalDropZone.querySelector('p');
+    const optionalFileList = document.getElementById('optional-file-list');
+
+    function handleOptionalFiles(files) {
+        if (files.length === 0) return;
+        optionalPrompt.style.display = 'none';
+        for (const file of files) {
+            optionalFiles.push(file);
+            const li = document.createElement('li');
+            li.textContent = `✅ ${file.name}`;
+            optionalFileList.appendChild(li);
+        }
+    }
+
+    optionalDropZone.addEventListener('click', () => optionalFileInput.click());
+    optionalFileInput.addEventListener('change', () => handleOptionalFiles(optionalFileInput.files));
+    optionalDropZone.addEventListener('dragover', (e) => { e.preventDefault(); optionalDropZone.classList.add('drag-over'); });
+    optionalDropZone.addEventListener('dragleave', () => optionalDropZone.classList.remove('drag-over'));
+    optionalDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        optionalDropZone.classList.remove('drag-over');
+        handleOptionalFiles(e.dataTransfer.files);
+    });
+    optionalDocNextBtn.addEventListener('click', nextStep);
 
     document.querySelectorAll('.platform-btn').forEach(button => {
         button.addEventListener('click', () => {
@@ -81,19 +120,26 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    platformNextBtn.addEventListener('click', () => {
-        if (selectedPlatforms.length === 0) {
-            alert('하나 이상의 플랫폼을 선택해주세요.');
-            return;
-        }
+    platformNextBtn.addEventListener('click', nextStep);
+
+    contentNextBtn.addEventListener('click', () => {
+        requestContent = requestContentInput.value.trim();
+
         document.getElementById('platform-summary').textContent = selectedPlatforms.join(', ');
-        const fileList = document.getElementById('file-summary-list');
-        fileList.innerHTML = '';
-        Object.values(uploadedFiles).forEach(file => { // ★ 수정: 객체를 순회하며 파일 이름 표시
+        const fileSummaryList = document.getElementById('file-summary-list');
+        fileSummaryList.innerHTML = '';
+        Object.values(uploadedFiles).forEach(file => {
             const li = document.createElement('li');
-            li.textContent = `✅ ${file.name}`;
-            fileList.appendChild(li);
+            li.textContent = `✅ ${file.name} (필수)`;
+            fileSummaryList.appendChild(li);
         });
+        optionalFiles.forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = `✅ ${file.name} (기타)`;
+            fileSummaryList.appendChild(li);
+        });
+        document.getElementById('content-summary').textContent = requestContent || "작성된 내용이 없습니다.";
+
         nextStep();
     });
 
@@ -105,20 +151,18 @@ document.addEventListener("DOMContentLoaded", function() {
         formData.append('relationCertification', uploadedFiles['step-doc1']);
         formData.append('deathCertificate', uploadedFiles['step-doc2']);
         formData.append('applicantId', uploadedFiles['step-doc3']);
+        optionalFiles.forEach(file => formData.append('otherFiles', file));
+        formData.append('reason', requestContent);
 
-        nextStep(); // -> Loading
+        nextStep();
         const loadingText = document.getElementById('loading-text');
 
         try {
-            const response = await fetch('/requests/apply',
-                { method: 'POST',
-                    body: formData,
-                    credentials: 'include'
-                });
+            const response = await fetch('/requests/apply', { method: 'POST', body: formData, credentials: 'include' });
             if (!response.ok) throw new Error('Server error');
         } catch (error) {
             alert('제출에 실패했습니다.');
-            goToStep(7);
+            goToStep(8); // 최종 확인 단계 인덱스로 수정 필요
             return;
         }
 
@@ -126,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
             loadingText.textContent = '각 플랫폼에 요청을 보내고 있습니다.';
         }, 2000);
         setTimeout(() => {
-            nextStep(); // -> Complete
+            nextStep();
         }, 4000);
     });
 

@@ -1,14 +1,17 @@
 package com.example.demo.controller.requests;
 
 import com.example.demo.dto.requests.SnsRequestDTO;
+import com.example.demo.dto.requests.SnsRequestSummaryDTO;
 import com.example.demo.service.Requests.SnsRequestService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/requests")
@@ -18,8 +21,18 @@ public class SnsRequestController {
     private final SnsRequestService snsRequestService;
 
     @GetMapping("/dashboard")
-    public String requestsDashboardPage(){
-        return "dashboard";
+    public String requestsDashboardPage(Model model, HttpSession session)
+    {
+         Long userId = (Long) session.getAttribute("LOGIN_USER_ID");
+
+        if (userId == null) {
+            return "redirect:/user/login";
+        }
+
+        List<SnsRequestSummaryDTO> requests = snsRequestService.findMyRequests(userId);
+        model.addAttribute("requests", requests);
+
+        return "requests_dashboard";
     }
 
     @GetMapping("/apply")

@@ -59,6 +59,18 @@
             </div>
         </div>
 
+        <div id="step-doc-optional" class="form-step hidden">
+            <p class="chat-bubble heon">그 외에 추가할 파일이 있으면 여기에 업로드해주세요. (선택 사항)</p>
+            <div class="drop-zone" id="dropzone-optional">
+                <p>여기에 파일을 드래그 앤 드롭하거나 클릭하여 선택하세요.</p>
+                <input type="file" class="file-input" hidden multiple>
+                <div class="file-status">
+                    <ul id="optional-file-list"></ul>
+                </div>
+            </div>
+            <button type="button" id="optionalDocNextBtn" class="next-btn" style="margin-top: 20px;">없음 / 다음 단계로</button>
+        </div>
+
         <div id="step-platform-select" class="form-step hidden">
             <p class="chat-bubble heon">서류 준비가 끝났습니다. 이제 정리 요청을 보낼 플랫폼을 모두 선택해주세요.</p>
             <div class="user-input">
@@ -72,6 +84,14 @@
             </div>
         </div>
 
+        <div id="step-content" class="form-step hidden">
+            <p class="chat-bubble heon">추가적인 요청 사항이나 전달할 내용이 있다면 작성해주세요. (선택 사항)</p>
+            <div class="user-input">
+                <textarea id="request-content" class="content-textarea" placeholder="특별히 요청할 내용이나 사유를 자유롭게 작성해주세요."></textarea>
+                <button type="button" id="contentNextBtn" class="next-btn">작성 완료</button>
+            </div>
+        </div>
+
         <div id="step-final-confirm" class="form-step hidden">
             <p class="chat-bubble heon">마지막으로 제출할 내용을 확인해주세요.</p>
             <div class="summary-box">
@@ -80,6 +100,9 @@
                 <hr>
                 <h4>제출된 서류</h4>
                 <ul id="file-summary-list"></ul>
+                <hr>
+                <h4>추가 요청 사항</h4>
+                <p id="content-summary">작성된 내용이 없습니다.</p>
             </div>
             <p class="warning-text">※ 제출된 파일들은 더 이상 수정할 수 없습니다.</p>
             <div class="button-group">
@@ -109,6 +132,7 @@
 
 <div th:replace="~{common/footer :: footerFragment}"></div>
 
+<script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/apply-interactive.js}"></script>
 
 </body>

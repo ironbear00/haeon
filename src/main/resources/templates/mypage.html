@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>마이페이지</title>
-
+    <meta charset="UTF-8" />
+    <title>마이페이지 - 헤온</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
-
-
+<div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
-  <h1>마이페이지</h1>
-  <ul>
-    <li><a href="/mypage/info">내 정보</a></li>
-    <li><a href="/mypage/posts">내 게시글</a></li>
-    <li><a href="/mypage/replies">내 댓글</a></li>
-    <li><a href="/mypage/progress">진행 상황</a></li>
-    <li><a href="/deceased">고인 목록</a></li>
-  </ul>
-
+    <h1>마이페이지</h1>
+    <ul>
+        <li><a href="/mypage/info">내 정보</a></li>
+        <li><a href="/mypage/posts">내 게시글</a></li>
+        <li><a href="/mypage/replies">내 댓글</a></li>
+        <li><a href="/mypage/progress">진행 상황</a></li>
+        <li><a href="/deceased">고인 목록</a></li>
+    </ul>
 </main>
+
+<div th:replace="~{common/footer :: footerFragment}"></div>
+<script th:src="@{/js/common.js}"></script>
 
 </body>
 </html>

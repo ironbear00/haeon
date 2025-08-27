@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <title>신청 현황 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <link rel="stylesheet" th:href="@{/css/main.css}" />
-</head>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" /> </head>
 <body>
 
 <div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
     <h2>신청 진행 상황</h2>
-    <table border="1" style="width:100%;">
+
+    <table>
         <thead>
         <tr>
             <th>플랫폼</th>
@@ -22,15 +22,17 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>페이스북</td>
-            <td>처리 중</td>
-            <td>2025.07.28</td>
+        <tr th:if="${!requests.isEmpty()}" th:each="req : ${requests}">
+            <td th:text="${req.platformName}">페이스북</td>
+            <td>
+                <span class="status"
+                      th:classappend="${req.status == 'SUBMITTED' ? 'submitted' : 'completed'}"
+                      th:text="${req.status == 'SUBMITTED' ? '처리 중' : '완료'}">처리 중</span>
+            </td>
+            <td th:text="${req.createdAt}">2025.07.28</td>
         </tr>
-        <tr>
-            <td>인스타그램</td>
-            <td>완료</td>
-            <td>2025.07.25</td>
+        <tr th:if="${requests.isEmpty()}">
+            <td colspan="3" class="empty-message">신청 내역이 없습니다.</td>
         </tr>
         </tbody>
     </table>
@@ -38,52 +40,7 @@
 
 <div th:replace="~{common/footer :: footerFragment}"></div>
 
-<script>
-    const API_BASE = "http://localhost:8080";
-    const ME_ENDPOINT = API_BASE + "/user/me";
-    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const authStatus = document.getElementById("authStatus");
-
-        async function fetchMe() {
-            try {
-                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-                if (res.ok) {
-                    return await res.json();
-                }
-                return null;
-            } catch (err) {
-                console.error("Failed to fetch user info:", err);
-                return null;
-            }
-        }
-
-        function updateUI(user) {
-            if (!authStatus) return;
-            authStatus.innerHTML = "";
-            if (user) {
-                authStatus.innerHTML = `
-                        <span class="user-status-item">${user.name}님</span>
-                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
-                    `;
-                document.getElementById("logoutBtn").addEventListener("click", async () => {
-                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
-                    window.location.reload();
-                });
-            } else {
-                authStatus.innerHTML = `
-                        <a class="user-status-btn" href="/user/login">로그인</a>
-                        <a class="user-status-btn" href="/user/signup">회원가입</a>
-                    `;
-            }
-        }
-        (async () => {
-            const user = await fetchMe();
-            updateUI(user);
-        })();
-    });
-</script>
+<script th:src="@{/js/common.js}"></script>
 
 </body>
 </html>

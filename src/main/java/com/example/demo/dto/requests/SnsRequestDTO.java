@@ -14,4 +14,5 @@ public class SnsRequestDTO {
     private MultipartFile deathCertificate;
     private MultipartFile applicantId;
     private List<MultipartFile> otherFiles;
+    private String reason;
 }
