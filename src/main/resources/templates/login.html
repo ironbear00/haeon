@@ -37,8 +37,8 @@
 
 <script>
     const API_BASE = "http://localhost:8080";
-    const LOGIN_ENDPOINT = API_BASE + "/user/login"; // 경로 일관성을 위해 수정
-    const REDIRECT_AFTER_LOGIN = "/main"; // Controller 경로에 맞게 수정
+    const LOGIN_ENDPOINT = API_BASE + "/user/login";
+    const REDIRECT_AFTER_LOGIN = "/main";
 
     const form = document.getElementById("loginForm");
     const btn  = document.getElementById("loginBtn");
@@ -89,7 +89,7 @@
         }
 
         try{
-            await login(email, password);
+            const user = await login(email, password);
             setMessage("로그인 성공! 메인으로 이동 중...", "success");
             window.location.href = REDIRECT_AFTER_LOGIN;
         }catch(err){
