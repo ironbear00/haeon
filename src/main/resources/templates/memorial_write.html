@@ -1,34 +1,71 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
     <title>추모글 작성하기 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
-
 <div th:replace="~{common/header :: headerFragment}"></div>
 
 <main>
-    <form action="/memorial/write" method="post">
-        <h2>고인 정보</h2>
-        <p>
-            <label for="deceased_name">성함:</label>
-            <input type="text" id="deceased_name" name="deceased_name" required>
-        </p>
-        <p>
-            <label for="birth_date">생년월일:</label>
-            <input type="date" id="birth_date" name="birth_date" required>
-        </p>
-        <p>
-            <label for="death_date">사망일:</label>
-            <input type="date" id="death_date" name="death_date" required>
-        </p>
+    <h2>추모글 작성</h2>
 
-        <h2>추모글 내용</h2>
-        <textarea id="memorial_post" name="memorial_post" rows="10" cols="50" placeholder="고인을 추억하는 글을 작성해 주세요." required></textarea>
+    <form th:action="@{/memorial/write}" method="post">
+        <!-- 고인 선택 -->
+        <section style="border:1px solid #ddd; padding:12px; margin-bottom:16px;">
+            <h3>고인 선택</h3>
+            <p>
+                <label for="deceasedId">고인</label>
+                <select id="deceasedId" name="deceasedId" required>
+                    <option value="" disabled
+                            th:selected="${preselectedId} == null">고인을 선택하세요</option>
+                    <option th:each="d : ${deceasedList}"
+                            th:value="${d.id}"
+                            th:selected="${preselectedId != null and preselectedId == d.id}"
+                            th:text="${d.name} + ' (' + (d.birthDate != null ? d.birthDate : '-') + ' ~ ' + (d.deathDate != null ? d.deathDate : '-') + ')'">
+                    </option>
+                </select>
+                <a href="/deceased/create" class="btn btn-sm">+ 고인 등록</a>
+            </p>
+            <small>목록에 없다면 “+ 고인 등록”으로 먼저 등록해 주세요.</small>
+        </section>
+
+        <!-- 추모글 -->
+        <section>
+            <h3>추모글</h3>
+            <p>
+                <label for="title">제목</label>
+                <input type="text" id="title" name="title"
+                       placeholder="예: 故 ○○○님 추모공간" required>
+            </p>
+            <p>
+                <label for="content">내용</label><br>
+                <textarea id="content" name="content" rows="10" cols="50"
+                          placeholder="고인을 추억하는 글을 작성해 주세요."
+                          required></textarea>
+            </p>
+        </section>
+
+        <!-- 접근 설정 (필수) -->
+        <section>
+            <h3>접근 비밀번호 (필수)</h3>
+            <p>
+                <label for="accessPassword">접근 비밀번호</label>
+                <input type="password"
+                       id="accessPassword"
+                       name="accessPassword"
+                       required
+                       minlength="4"
+                       maxlength="20"
+                       autocomplete="new-password"
+                       placeholder="비밀번호(4~20자)">
+                <small>입장 시 필요한 비밀번호입니다. 4~20자로 설정하세요.</small>
+            </p>
+        </section>
 
         <button type="submit">등록하기</button>
     </form>
@@ -37,6 +74,31 @@
 <div th:replace="~{common/footer :: footerFragment}"></div>
 
 <script>
+    // 선택된 고인 이름을 제목 placeholder에 반영
+    function updateTitlePlaceholder() {
+        const sel = document.getElementById('deceasedId');
+        const title = document.getElementById('title');
+        if (!sel || !title) return;
+
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) {
+            title.placeholder = '예: 故 ○○○님 추모공간';
+            return;
+        }
+        const text = opt.text || '';
+        const name = text.split('(')[0].trim();
+        if (name) title.placeholder = `예: 故 ${name}님 추모공간`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const sel = document.getElementById('deceasedId');
+        if (sel) {
+            updateTitlePlaceholder();
+            sel.addEventListener('change', updateTitlePlaceholder);
+        }
+    });
+
+    // 헤더 로그인 UI 유지 스크립트
     const API_BASE = "http://localhost:8080";
     const ME_ENDPOINT = API_BASE + "/user/me";
     const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
@@ -47,9 +109,7 @@
         async function fetchMe() {
             try {
                 const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-                if (res.ok) {
-                    return await res.json();
-                }
+                if (res.ok) return await res.json();
                 return null;
             } catch (err) {
                 console.error("Failed to fetch user info:", err);
@@ -62,26 +122,26 @@
             authStatus.innerHTML = "";
             if (user) {
                 authStatus.innerHTML = `
-                        <span class="user-status-item">${user.name}님</span>
-                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
-                    `;
-                document.getElementById("logoutBtn").addEventListener("click", async () => {
+                    <span class="user-status-item">\${user.name}님</span>
+                    <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                `;
+                document.getElementById("logoutBtn")?.addEventListener("click", async () => {
                     await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
                     window.location.reload();
                 });
             } else {
                 authStatus.innerHTML = `
-                        <a class="user-status-btn" href="/user/login">로그인</a>
-                        <a class="user-status-btn" href="/user/signup">회원가입</a>
-                    `;
+                    <a class="user-status-btn" href="/user/login">로그인</a>
+                    <a class="user-status-btn" href="/user/signup">회원가입</a>
+                `;
             }
         }
+
         (async () => {
             const user = await fetchMe();
             updateUI(user);
         })();
     });
 </script>
-
 </body>
 </html>
