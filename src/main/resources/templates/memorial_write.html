@@ -122,7 +122,7 @@
             authStatus.innerHTML = "";
             if (user) {
                 authStatus.innerHTML = `
-                    <span class="user-status-item">\${user.name}님</span>
+                    <span class="user-status-item">${user.name}님</span>
                     <button id="logoutBtn" class="logout-btn">로그아웃</button>
                 `;
                 document.getElementById("logoutBtn")?.addEventListener("click", async () => {
