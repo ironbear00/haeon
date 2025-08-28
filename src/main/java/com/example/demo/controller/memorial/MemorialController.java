@@ -6,12 +6,14 @@ import com.example.demo.domain.User;
 import com.example.demo.repository.memorial.CommentRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.PostService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.util.List;
@@ -37,8 +39,17 @@ public class MemorialController {
         return "memorial";
     }
 
+    /** 로그인 여부에 따라 분기: 로그인 O → 작성 페이지, 로그인 X → 로그인 페이지로 리다이렉트 */
     @GetMapping("/memorial_write")
-    public String memorialWrite(){
+    public String memorialWrite(Authentication authentication) {
+        boolean notLoggedIn =
+                (authentication == null)
+                        || !authentication.isAuthenticated()
+                        || (authentication instanceof AnonymousAuthenticationToken);
+
+        if (notLoggedIn) {
+            return "redirect:/user/login?next=/memorial/memorial_write";
+        }
         return "memorial_write";
     }
 

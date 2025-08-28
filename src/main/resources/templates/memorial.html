@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
     <title>온라인 추모 공간 - 헤온</title>
@@ -12,7 +14,16 @@
 
 <main>
     <h2>추모 게시판</h2>
-    <a href="/memorial/memorial_write">추모글 작성하기</a>
+
+    <!-- 로그인 상태: 작성 페이지로 이동 -->
+    <a sec:authorize="isAuthenticated()" th:href="@{/memorial/memorial_write}">
+        추모글 작성하기
+    </a>
+
+    <!-- 비로그인 상태: 로그인 페이지로 이동 -->
+    <a sec:authorize="isAnonymous()" th:href="@{/user/login}">
+        추모글 작성하기
+    </a>
 
     <div id="post_list">
         <div th:each="post : ${postList}" style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
