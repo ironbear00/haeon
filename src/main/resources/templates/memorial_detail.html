@@ -32,7 +32,7 @@
         <p><strong>생년월일:</strong>
             <span th:text="${post.deceased.birthDate != null ? #temporals.format(post.deceased.birthDate, 'yyyy-MM-dd') : '-'}"></span>
         </p>
-        
+
         <p><strong>사망일:</strong>
             <span th:text="${post.deceased.deathDate != null ? #temporals.format(post.deceased.deathDate, 'yyyy-MM-dd') : '-'}"></span>
         </p>
