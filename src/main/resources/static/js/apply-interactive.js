@@ -16,6 +16,22 @@ document.addEventListener("DOMContentLoaded", function() {
     const resetBtn = document.getElementById('resetBtn');
 
 
+    function initializeStep() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const step = urlParams.get('step');
+
+
+        if (step === 'upload') {
+            goToStep(4);
+            return;
+        }
+
+
+        showStep(0);
+    }
+
+
+
     function showStep(stepIndex) {
         steps.forEach((step, index) => {
             step.style.display = index === stepIndex ? 'flex' : 'none';
@@ -162,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!response.ok) throw new Error('Server error');
         } catch (error) {
             alert('제출에 실패했습니다.');
-            goToStep(8); // 최종 확인 단계 인덱스로 수정 필요
+            goToStep(8);
             return;
         }
 
@@ -176,5 +192,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     resetBtn.addEventListener('click', () => window.location.reload());
 
-    showStep(0);
+
+    initializeStep();
 });
