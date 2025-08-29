@@ -3,6 +3,7 @@ package com.example.demo.controller.requests;
 import com.example.demo.dto.DeceasedResponse;
 import com.example.demo.dto.requests.SnsRequestDTO;
 import com.example.demo.dto.requests.SnsRequestSummaryDTO;
+import com.example.demo.service.DeceasedService;
 import com.example.demo.service.requests.SnsRequestService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class SnsRequestController {
 
     private final SnsRequestService snsRequestService;
     private final DeceasedService deceasedService;
-
+    
     @GetMapping("/dashboard")
     public String requestsDashboardPage(Model model, HttpSession session)
     {
