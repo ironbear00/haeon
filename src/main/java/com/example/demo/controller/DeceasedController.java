@@ -20,12 +20,10 @@ public class DeceasedController {
 
     private final DeceasedService deceasedService;
 
-    /** 고인 목록 페이지 */
     @GetMapping
     public String list(HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            // 로그인 페이지로 보낼 때, 돌아올 곳 지정
             return "redirect:/user/login?next=/deceased";
         }
         List<DeceasedResponse> list = deceasedService.getDeceasedList(userId); // ⬅ 내 소유만 반환하도록 서비스 구현
@@ -33,7 +31,6 @@ public class DeceasedController {
         return "deceased_list";
     }
 
-    /** 등록 폼 페이지 */
     @GetMapping("/create")
     public String createForm(HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
@@ -44,7 +41,6 @@ public class DeceasedController {
         return "deceased_create";
     }
 
-    /** 등록 처리 */
     @PostMapping("/create")
     public String create(HttpSession session,
                          @ModelAttribute("deceased") DeceasedRequest req,
@@ -62,7 +58,6 @@ public class DeceasedController {
         return "redirect:/deceased";
     }
 
-    /** 수정 폼 페이지 */
     @GetMapping("/edit")
     public String editForm(@RequestParam("id") Long id,
                            HttpSession session,
@@ -72,12 +67,10 @@ public class DeceasedController {
             return "redirect:/user/login?next=/deceased/edit?id=" + id;
         }
         DeceasedResponse response = deceasedService.getDeceasedByIdForOwner(id, userId);
-        // ⬆️ 서비스에서 해당 id가 userId 소유인지 검증(아니면 예외)
         model.addAttribute("deceased", response);
         return "deceased_edit";
     }
 
-    /** 수정 처리 (소유권 검증) */
     @PostMapping("/edit")
     public String edit(@RequestParam("id") Long id,
                        @ModelAttribute("deceased") DeceasedRequest req,
@@ -86,18 +79,17 @@ public class DeceasedController {
         if (userId == null) {
             return "redirect:/user/login?next=/deceased/edit?id=" + id;
         }
-        deceasedService.updateDeceasedForOwner(id, userId, req); // ⬅ 소유권 검증 포함
+        deceasedService.updateDeceasedForOwner(id, userId, req);
         return "redirect:/deceased";
     }
 
-    /** 삭제 처리 */
     @PostMapping("/delete")
     public String delete(@RequestParam("id") Long id, HttpSession session) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
             return "redirect:/user/login?next=/deceased";
         }
-        deceasedService.deleteDeceasedForOwner(id, userId); // ⬅ 소유권 검증 포함
+        deceasedService.deleteDeceasedForOwner(id, userId);
         return "redirect:/deceased";
     }
 }

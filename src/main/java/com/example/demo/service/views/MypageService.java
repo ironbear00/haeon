@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.service.views;
 
 import com.example.demo.domain.User;
 import com.example.demo.dto.UpdateUserRequest;

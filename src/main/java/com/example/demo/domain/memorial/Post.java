@@ -5,7 +5,10 @@ import com.example.demo.domain.User;
 import com.example.demo.domain.utils.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +16,8 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "post")
+@SuperBuilder
+@NoArgsConstructor
 public class Post extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

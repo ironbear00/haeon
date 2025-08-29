@@ -1,6 +1,6 @@
-package com.example.demo.controller;
+package com.example.demo.controller.AI;
 
-import com.example.demo.service.AiQaService;
+import com.example.demo.service.AI.AiQaService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

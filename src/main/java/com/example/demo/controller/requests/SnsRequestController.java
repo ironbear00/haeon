@@ -46,12 +46,9 @@ public class SnsRequestController {
             Model model) {
 
         if (targetId != null) {
-            // ★★★ 서비스 호출 후 null 체크 로직 추가 ★★★
             DeceasedResponse deceased = deceasedService.getDeceasedById(targetId);
 
             if (deceased == null) {
-                // 고인 정보가 없을 경우 에러 페이지로 리다이렉트하거나 404 에러를 반환
-                // 여기서는 에러 메시지를 포함하여 리다이렉트하는 방식으로 처리합니다.
                 return "redirect:/error?message=Deceased information not found.";
             }
 

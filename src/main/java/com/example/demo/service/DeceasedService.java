@@ -27,14 +27,15 @@ public class DeceasedService {
         User owner = userRepository.findById(ownerUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        Deceased deceased = new Deceased();
-        deceased.setName(req.getName());
-        deceased.setPhone(req.getPhone());
-        deceased.setBirthDate(req.getBirthDate());
-        deceased.setGender(req.getGender());
-        deceased.setDeathDate(req.getDeathDate());
-        deceased.setFuneralDate(req.getFuneralDate());
-        deceased.setManagerUser(owner); // 소유자 설정
+        Deceased deceased = Deceased.builder()
+                .name(req.getName())
+                .phone(req.getPhone())
+                .birthDate(req.getBirthDate())
+                .gender(req.getGender())
+                .deathDate(req.getDeathDate())
+                .funeralDate(req.getFuneralDate())
+                .managerUser(owner)
+                .build();
 
         Deceased saved = deceasedRepository.save(deceased);
         return toResponse(saved);

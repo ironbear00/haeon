@@ -4,14 +4,17 @@ import com.example.demo.domain.utils.AuthProvider;
 import com.example.demo.domain.utils.AuthProviderAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
+@SuperBuilder
+@NoArgsConstructor
 @AttributeOverrides({
         @AttributeOverride(name = "name",      column = @Column(name = "name",       nullable = false, length = 100)),
         @AttributeOverride(name = "phone",     column = @Column(name = "phone",      length = 255)),

@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.service.memorial;
 
 import com.example.demo.domain.memorial.Post;
 import com.example.demo.repository.memorial.PostRepository;

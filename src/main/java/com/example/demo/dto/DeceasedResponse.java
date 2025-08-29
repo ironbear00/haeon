@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.example.demo.domain.Deceased;
 import com.example.demo.domain.utils.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,4 +21,16 @@ public class DeceasedResponse {
 
     private LocalDate deathDate;
     private LocalDate funeralDate;
+
+    public static DeceasedResponse fromEntity(Deceased deceased) {
+        DeceasedResponse dto = new DeceasedResponse();
+        dto.setId(deceased.getId());
+        dto.setName(deceased.getName());
+        dto.setBirthDate(deceased.getBirthDate());
+        dto.setDeathDate(deceased.getDeathDate());
+        dto.setFuneralDate(deceased.getFuneralDate());
+        dto.setPhone(deceased.getPhone());
+        dto.setGender(deceased.getGender());
+        return dto;
+    }
 }

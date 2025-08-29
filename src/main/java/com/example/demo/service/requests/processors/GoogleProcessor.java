@@ -147,7 +147,10 @@ public class GoogleProcessor implements SnsPlatformProcessor {
             log.info("[Google] 제품(Google 계정) 체크박스 선택 완료.");
 
 
-            //upload files
+            //region upload files
+            //
+            //
+            /*
             RequestFile applicantIdFile = findFileByType(request, "APPLICANT_ID");
             String applicantIdFilePath = applicantIdFile.getFilePath();
             log.info("업로드 시도할 신분증 파일 경로: " + applicantIdFilePath);
@@ -178,7 +181,8 @@ public class GoogleProcessor implements SnsPlatformProcessor {
             } else {
                 log.info("[Google] 기타 증빙 서류(타입 3, 4)가 없으므로 업로드를 건너뜁니다.");
             }
-
+            */
+            //endregion
 
             String reason = request.getReason();
             if (reason != null && !reason.isBlank()) {
@@ -192,8 +196,6 @@ public class GoogleProcessor implements SnsPlatformProcessor {
                 log.info("[Google] 추가 정보(요청 사유)가 없으므로 입력을 건너뜁니다.");
             }
 
-
-            // --- 5. 최종 제출 ---
 //            driver.findElement(By.id("submit_button")).click();
 
             request.setStatus("COMPLETED");

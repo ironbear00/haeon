@@ -6,6 +6,8 @@ import com.example.demo.domain.requests.RequestFile;
 import com.example.demo.domain.requests.SnsRequest;
 import com.example.demo.domain.utils.FileType;
 import com.example.demo.domain.utils.SnsPlatform;
+import com.example.demo.dto.DeceasedRequest;
+import com.example.demo.dto.DeceasedResponse;
 import com.example.demo.dto.requests.SnsRequestDTO;
 import com.example.demo.dto.requests.SnsRequestSummaryDTO;
 import com.example.demo.repository.DeceasedRepository;
@@ -15,6 +17,7 @@ import com.example.demo.repository.requests.SnsRequestRepository;
 import com.example.demo.repository.utils.FileTypeRepository;
 import com.example.demo.repository.utils.SnsPlatformRepository;
 import com.example.demo.service.utils.FileStore;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,11 +64,12 @@ public class SnsRequestService {
             SnsPlatform platform = snsPlatformRepository.findByName(platformName)
                     .orElseThrow(() -> new IllegalArgumentException("플랫폼을 찾을 수 없습니다: " + platformName));
 
-            SnsRequest snsRequest = new SnsRequest();
-            snsRequest.setRequester(requester);
-            snsRequest.setDeceased(deceased);
-            snsRequest.setSnsPlatform(platform);
-            snsRequest.setReason(dto.getReason());
+            SnsRequest snsRequest = SnsRequest.builder()
+                    .requester(requester)
+                    .deceased(deceased)
+                    .snsPlatform(platform)
+                    .reason(dto.getReason())
+                    .build();
 
             snsRequest.addFile(createRequestFile(relationCertPath, relationType));
             snsRequest.addFile(createRequestFile(deathCertPath, deathType));
@@ -90,5 +94,25 @@ public class SnsRequestService {
                 .stream()
                 .map(SnsRequestSummaryDTO::new) // SnsRequest -> SnsRequestSummaryDto 변환
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public DeceasedResponse createDeceased(Long userId, DeceasedRequest req) {
+        User managerUser = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+        Deceased deceased = Deceased.builder()
+                .name(req.getName())
+                .birthDate(req.getBirthDate())
+                .deathDate(req.getDeathDate())
+                .funeralDate(req.getFuneralDate())
+                .phone(req.getPhone())
+                .gender(req.getGender())
+                .managerUser(managerUser)
+                .build();
+
+        Deceased savedDeceased = deceasedRepository.save(deceased);
+
+        return DeceasedResponse.fromEntity(savedDeceased);
     }
 }

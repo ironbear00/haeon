@@ -1,10 +1,7 @@
-package com.example.demo.controller;
+package com.example.demo.controller.views;
 
-import ch.qos.logback.core.model.Model;
-import com.example.demo.domain.User;
-import com.example.demo.service.UserService;
+import com.example.demo.controller.UserController;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

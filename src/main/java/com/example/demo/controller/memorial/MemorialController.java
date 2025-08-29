@@ -8,7 +8,7 @@ import com.example.demo.repository.DeceasedRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.memorial.CommentRepository;
 import com.example.demo.repository.memorial.PostRepository;
-import com.example.demo.service.PostService;
+import com.example.demo.service.memorial.PostService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity; // 추가
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -107,13 +107,14 @@ public class MemorialController {
 
         String uuid = UUID.randomUUID().toString();
 
-        Post post = new Post();
-        post.setTitle(title);
-        post.setContent(content);
-        post.setAuthor(author);
-        post.setDeceased(deceased);
-        post.setUuidLink(uuid);
-        post.setAccessPassword(accessPassword);
+        Post post = Post.builder()
+                .title(title)
+                .content(content)
+                .author(author)
+                .deceased(deceased)
+                .uuidLink(uuid)
+                .accessPassword(accessPassword)
+                .build();
 
         if (photo != null && !photo.isEmpty()) {
             try {
@@ -198,9 +199,10 @@ public class MemorialController {
         Post post = postService.findByUuidLink(uuid);
         if (post == null) throw new IllegalArgumentException("Invalid post uuid: " + uuid);
 
-        Comment comment = new Comment();
-        comment.setContent(content);
-        comment.setPost(post);
+        Comment comment = Comment.builder()
+                .content(content)
+                .post(post)
+                .build();
 
         if (principal != null) {
             User author = userRepository.findByEmail(principal.getName())

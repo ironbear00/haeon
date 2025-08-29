@@ -6,8 +6,11 @@ import com.example.demo.domain.utils.BaseTimeEntity;
 import com.example.demo.domain.utils.SnsPlatform;
 import com.example.demo.domain.utils.Status;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +19,8 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "sns_requests")
+@SuperBuilder
+@NoArgsConstructor
 public class SnsRequest extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,9 +39,11 @@ public class SnsRequest extends BaseTimeEntity {
     private SnsPlatform snsPlatform;
 
     @Column(nullable = false, length = 50)
+    @Builder.Default
     private String status = "SUBMITTED";
 
     @OneToMany(mappedBy = "snsRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<RequestFile> files=new ArrayList<>();
 
     @Column(length = 1000)

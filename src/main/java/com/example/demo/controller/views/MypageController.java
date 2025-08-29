@@ -1,8 +1,8 @@
-package com.example.demo.controller;
+package com.example.demo.controller.views;
 
 import com.example.demo.dto.UpdateUserRequest;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.service.MypageService;
+import com.example.demo.service.views.MypageService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

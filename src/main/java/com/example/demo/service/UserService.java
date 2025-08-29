@@ -45,16 +45,15 @@ public class UserService {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(rawPw));
-        user.setProvider(AuthProvider.LOCAL); // 로컬 회원가입으로 고정
-
-        // 선택적 필드 처리
-        user.setPhone(emptyToNull(safeTrim(req.getPhone())));
-        user.setBirthDate(parseBirthDate(req.getBirthDate()));
-        user.setGender(parseGender(req.getGender()));
+        User user = User.builder()
+                .name(name)
+                .email(email)
+                .password(passwordEncoder.encode(rawPw))
+                .provider(AuthProvider.LOCAL)
+                .phone(emptyToNull(safeTrim(req.getPhone())))
+                .birthDate(parseBirthDate(req.getBirthDate()))
+                .gender(parseGender(req.getGender()))
+                .build();
 
         User saved = userRepository.save(user);
         return toResponse(saved);
