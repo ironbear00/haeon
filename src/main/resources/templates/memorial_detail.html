@@ -14,11 +14,18 @@
 
 <main>
     <div id="deceased_info_detail">
-        <img th:src="@{${post.deceasedPhotoPath}}" alt="고인 프로필 사진" style="width:200px; border-radius: 50%;">
+        <img th:if="${post.deceasedPhotoPath != null}"
+             th:src="${post.deceasedPhotoPath}"
+             alt="고인 프로필 사진"
+             style="width:200px; border-radius: 50%;">
 
         <p><strong>성함:</strong> <span th:text="|故 ${post.deceased.name}님|"></span></p>
-        <p><strong>생년월일:</strong> <span th:text="${#temporals.format(post.deceased.birthDate, 'yyyy-MM-dd')}"></span></p>
-        <p><strong>사망일:</strong> <span th:text="${#temporals.format(post.deceased.deathDate, 'yyyy-MM-dd')}"></span></p>
+        <p><strong>생년월일:</strong>
+            <span th:text="${post.deceased.birthDate != null ? #temporals.format(post.deceased.birthDate, 'yyyy-MM-dd') : '-'}"></span>
+        </p>
+        <p><strong>사망일:</strong>
+            <span th:text="${post.deceased.deathDate != null ? #temporals.format(post.deceased.deathDate, 'yyyy-MM-dd') : '-'}"></span>
+        </p>
         <p><strong>추모글:</strong> <span th:text="${post.content}"></span></p>
     </div>
 
@@ -39,13 +46,19 @@
 
         <h3>댓글 목록</h3>
         <div th:each="comment : ${post.comments}" style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
-            <p><strong><span th:text="${comment.author?.name ?: comment.authorName}"></span>:</strong> <span th:text="${comment.content}"></span></p>
+            <p>
+                <strong>
+                    <span th:text="${comment.author != null ? comment.author.name : comment.authorName}"></span>:
+                </strong>
+                <span th:text="${comment.content}"></span>
+            </p>
         </div>
 
         <div th:if="${#lists.isEmpty(post.comments)}">
             <p>아직 작성된 댓글이 없습니다.</p>
         </div>
     </div>
+
     <p><a href="/memorial">목록으로 돌아가기</a></p>
 </main>
 
@@ -78,7 +91,7 @@
             if (user) {
                 authStatus.innerHTML = `
                         <span class="user-status-item">${user.name}님</span>
-                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                        <button id="logoutBtn" class="logout-btn" >로그아웃</button>
                     `;
                 document.getElementById("logoutBtn").addEventListener("click", async () => {
                     await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });

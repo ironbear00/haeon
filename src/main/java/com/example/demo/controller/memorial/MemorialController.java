@@ -1,11 +1,11 @@
 package com.example.demo.controller.memorial;
 
-import com.example.demo.domain.User;
 import com.example.demo.domain.Deceased;
+import com.example.demo.domain.User;
 import com.example.demo.domain.memorial.Comment;
 import com.example.demo.domain.memorial.Post;
-import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.DeceasedRepository;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.memorial.CommentRepository;
 import com.example.demo.repository.memorial.PostRepository;
 import com.example.demo.service.PostService;
@@ -16,8 +16,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +50,6 @@ public class MemorialController {
         this.userRepository = userRepository;
     }
 
-    /** 목록 */
     @GetMapping("")
     public String memorial(Model model) {
         List<Post> postList = postService.getAllPosts();
@@ -52,11 +57,6 @@ public class MemorialController {
         return "memorial";
     }
 
-    /**
-     * 작성 페이지
-     * - 로그인 안되어 있으면 로그인 페이지로
-     * - 로그인 O → 로그인한 사용자가 등록한 고인만 보여줌
-     */
     @GetMapping("/memorial_write")
     public String memorialWrite(@RequestParam(required = false) Long deceasedId,
                                 Authentication authentication,
@@ -72,27 +72,23 @@ public class MemorialController {
             return "redirect:/user/login?next=" + next;
         }
 
-        // 현재 로그인 사용자 조회
         User me = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + principal.getName()));
 
-        // ✅ 내가 등록한 고인만 조회
         List<Deceased> deceasedList = deceasedRepository.findByManagerUser_Id(me.getId());
         model.addAttribute("deceasedList", deceasedList);
-
-        // 선택된 고인 ID (있으면 드롭다운에서 선택됨)
         model.addAttribute("preselectedId", deceasedId);
 
         return "memorial_write";
     }
 
-    /** 글 작성 처리: 고인은 기존 데이터에서 찾음 */
     @PostMapping("/write")
     @Transactional
     public String writeMemorial(@RequestParam Long deceasedId,
                                 @RequestParam String title,
                                 @RequestParam String content,
                                 @RequestParam String accessPassword,
+                                @RequestParam(value = "photo", required = false) MultipartFile photo,
                                 Principal principal,
                                 HttpSession session,
                                 RedirectAttributes ra) {
@@ -115,9 +111,22 @@ public class MemorialController {
         post.setAuthor(author);
         post.setDeceased(deceased);
         post.setUuidLink(uuid);
+        post.setAccessPassword(accessPassword);
 
-        if (accessPassword != null && !accessPassword.isBlank()) {
-            post.setAccessPassword(accessPassword);
+        if (photo != null && !photo.isEmpty()) {
+            try {
+                Path uploadDir = Paths.get(System.getProperty("user.home"), "uploads", "memorial");
+                Files.createDirectories(uploadDir);
+                String original = photo.getOriginalFilename();
+                String safeName = original == null ? "image" : Paths.get(original).getFileName().toString();
+                String newName = UUID.randomUUID() + "_" + safeName;
+                Path dest = uploadDir.resolve(newName);
+                Files.copy(photo.getInputStream(), dest, StandardCopyOption.REPLACE_EXISTING);
+                String webPath = "/uploads/memorial/" + newName;
+                post.setDeceasedPhotoPath(webPath);
+            } catch (IOException e) {
+                throw new RuntimeException("파일 업로드에 실패했습니다.", e);
+            }
         }
 
         postRepository.save(post);
@@ -130,7 +139,6 @@ public class MemorialController {
         return "redirect:/memorial/password_check/" + uuid;
     }
 
-    /** 비밀번호 확인 페이지 */
     @GetMapping("/password_check/{uuid}")
     public String memorialPasswordCheck(@PathVariable("uuid") String uuid, Model model) {
         Post post = postService.findByUuidLink(uuid);
@@ -142,7 +150,6 @@ public class MemorialController {
         return "memorial_password_check";
     }
 
-    /** 비밀번호 제출 처리 */
     @PostMapping("/detail/{uuid}")
     public String checkPassword(@PathVariable("uuid") String uuid,
                                 @RequestParam("password") String submittedPassword,
@@ -163,7 +170,6 @@ public class MemorialController {
         }
     }
 
-    /** 상세 */
     @GetMapping("/detail/{uuid}")
     public String memorialDetail(@PathVariable("uuid") String uuid, Model model, HttpSession session) {
         Post post = postService.findByUuidLink(uuid);
@@ -180,7 +186,6 @@ public class MemorialController {
         return "memorial_detail";
     }
 
-    /** 댓글 등록 */
     @Transactional
     @PostMapping("/comment/{uuid}")
     public String addComment(@PathVariable String uuid,

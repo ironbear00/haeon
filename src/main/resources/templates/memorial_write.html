@@ -7,6 +7,7 @@
     <title>추모글 작성하기 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" th:href="@{/css/main.css}" />
+
 </head>
 <body>
 <div th:replace="~{common/header :: headerFragment}"></div>
@@ -14,15 +15,13 @@
 <main>
     <h2>추모글 작성</h2>
 
-    <form th:action="@{/memorial/write}" method="post">
-        <!-- 고인 선택 -->
+    <form th:action="@{/memorial/write}" method="post" enctype="multipart/form-data">
         <section style="border:1px solid #ddd; padding:12px; margin-bottom:16px;">
             <h3>고인 선택</h3>
             <p>
                 <label for="deceasedId">고인</label>
                 <select id="deceasedId" name="deceasedId" required>
-                    <option value="" disabled
-                            th:selected="${preselectedId} == null">고인을 선택하세요</option>
+                    <option value="" disabled th:selected="${preselectedId} == null">고인을 선택하세요</option>
                     <option th:each="d : ${deceasedList}"
                             th:value="${d.id}"
                             th:selected="${preselectedId != null and preselectedId == d.id}"
@@ -34,35 +33,31 @@
             <small>목록에 없다면 “+ 고인 등록”으로 먼저 등록해 주세요.</small>
         </section>
 
-        <!-- 추모글 -->
         <section>
             <h3>추모글</h3>
             <p>
                 <label for="title">제목</label>
-                <input type="text" id="title" name="title"
-                       placeholder="예: 故 ○○○님 추모공간" required>
+                <input type="text" id="title" name="title" placeholder="예: 故 ○○○님 추모공간" required>
             </p>
             <p>
                 <label for="content">내용</label><br>
-                <textarea id="content" name="content" rows="10" cols="50"
-                          placeholder="고인을 추억하는 글을 작성해 주세요."
-                          required></textarea>
+                <textarea id="content" name="content" rows="10" cols="50" placeholder="고인을 추억하는 글을 작성해 주세요." required></textarea>
             </p>
         </section>
 
-        <!-- 접근 설정 (필수) -->
+        <section>
+            <h3>고인 프로필 사진 (선택)</h3>
+            <p>
+                <label for="photo">사진 파일</label>
+                <input type="file" id="photo" name="photo" accept="image/*">
+            </p>
+        </section>
+
         <section>
             <h3>접근 비밀번호 (필수)</h3>
             <p>
                 <label for="accessPassword">접근 비밀번호</label>
-                <input type="password"
-                       id="accessPassword"
-                       name="accessPassword"
-                       required
-                       minlength="4"
-                       maxlength="20"
-                       autocomplete="new-password"
-                       placeholder="비밀번호(4~20자)">
+                <input type="password" id="accessPassword" name="accessPassword" required minlength="4" maxlength="20" autocomplete="new-password" placeholder="비밀번호(4~20자)">
                 <small>입장 시 필요한 비밀번호입니다. 4~20자로 설정하세요.</small>
             </p>
         </section>
@@ -74,12 +69,14 @@
 <div th:replace="~{common/footer :: footerFragment}"></div>
 
 <script>
-    // 선택된 고인 이름을 제목 placeholder에 반영
+    const API_BASE = "http://localhost:8080";
+    const ME_ENDPOINT = API_BASE + "/user/me";
+    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
+
     function updateTitlePlaceholder() {
         const sel = document.getElementById('deceasedId');
         const title = document.getElementById('title');
         if (!sel || !title) return;
-
         const opt = sel.options[sel.selectedIndex];
         if (!opt || !opt.value) {
             title.placeholder = '예: 故 ○○○님 추모공간';
@@ -90,57 +87,52 @@
         if (name) title.placeholder = `예: 故 ${name}님 추모공간`;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // CSRF 토큰을 메타 태그에서 읽어오는 함수
+    function getCsrfToken() {
+        const token = document.querySelector("meta[name='_csrf']").content;
+        const header = document.querySelector("meta[name='_csrf_header']").content;
+        return { token, header };
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
         const sel = document.getElementById('deceasedId');
         if (sel) {
             updateTitlePlaceholder();
             sel.addEventListener('change', updateTitlePlaceholder);
         }
-    });
 
-    // 헤더 로그인 UI 유지 스크립트
-    const API_BASE = "http://localhost:8080";
-    const ME_ENDPOINT = API_BASE + "/user/me";
-    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
-
-    document.addEventListener("DOMContentLoaded", function() {
         const authStatus = document.getElementById("authStatus");
-
-        async function fetchMe() {
+        if (authStatus) {
             try {
                 const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-                if (res.ok) return await res.json();
-                return null;
-            } catch (err) {
-                console.error("Failed to fetch user info:", err);
-                return null;
+                const user = res.ok ? await res.json() : null;
+                authStatus.innerHTML = "";
+                if (user) {
+                    authStatus.innerHTML = `
+            <span class="user-status-item">${user.name}님</span>
+            <button id="logoutBtn" class="logout-btn" type="button">로그아웃</button>
+          `;
+                    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+                        const csrf = getCsrfToken();
+                        await fetch(LOGOUT_ENDPOINT, {
+                            method: "POST",
+                            credentials: "include",
+                            headers: {
+                                [csrf.header]: csrf.token // CSRF 토큰을 헤더에 포함
+                            }
+                        });
+                        window.location.reload();
+                    });
+                } else {
+                    authStatus.innerHTML = `
+            <a class="user-status-btn" href="/user/login">로그인</a>
+            <a class="user-status-btn" href="/user/signup">회원가입</a>
+          `;
+                }
+            } catch (e) {
+                console.error(e);
             }
         }
-
-        function updateUI(user) {
-            if (!authStatus) return;
-            authStatus.innerHTML = "";
-            if (user) {
-                authStatus.innerHTML = `
-                    <span class="user-status-item">${user.name}님</span>
-                    <button id="logoutBtn" class="logout-btn">로그아웃</button>
-                `;
-                document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
-                    window.location.reload();
-                });
-            } else {
-                authStatus.innerHTML = `
-                    <a class="user-status-btn" href="/user/login">로그인</a>
-                    <a class="user-status-btn" href="/user/signup">회원가입</a>
-                `;
-            }
-        }
-
-        (async () => {
-            const user = await fetchMe();
-            updateUI(user);
-        })();
     });
 </script>
 </body>

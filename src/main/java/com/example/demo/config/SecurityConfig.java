@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +30,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -38,25 +41,43 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
+                .httpBasic(b -> b.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/", "/main",
-                                "/user/login", "/user/signup",
-                                "/api/users/login", "/api/users/signup", "/api/user/login", "/api/ping",
-                                "/memorial", "/memorial/**",
-                                "/mypage_info", "/mypage/**",
-                                "/user/me", "/api/users/me").permitAll()
+                                "/",
+                                "/main",
+                                "/error",
+                                "/favicon.ico",
+                                "/*.html","/*.css","/*.js","/*.ico",
+                                "/*.png","/*.jpg","/*.jpeg","/*.gif",
+                                "/*.svg","/*.webp","/*.woff","/*.woff2","/*.ttf",
+                                "/static/**","/css/**","/js/**","/images/**",
+                                "/webjars/**",
+                                "/uploads/**",
+                                "/files/**"
+                        ).permitAll()
                         .requestMatchers(
-                                "/*.html", "/*.css", "/*.js", "/*.ico",
-                                "/*.png", "/*.jpg", "/*.jpeg", "/*.gif",
-                                "/*.svg", "/*.webp", "/*.woff", "/*.woff2", "/*.ttf",
-                                "/static/**", "/css/**").permitAll()
+                                "/user/login","/user/signup","/user/me",
+                                "/api/users/login","/api/users/signup","/api/user/login","/api/users/me",
+                                "/api/ping"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/memorial",
+                                "/memorial/",
+                                "/memorial/detail/**",
+                                "/memorial/password_check/**",
+                                "/memorial/comment/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/memorial/memorial_write",
+                                "/memorial/write"
+                        ).authenticated()
+                        .requestMatchers("/deceased/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
@@ -64,7 +85,8 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/user/login")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
-                        .permitAll());
+                        .permitAll()
+                );
         return http.build();
     }
 }
