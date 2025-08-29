@@ -49,10 +49,18 @@ public class SecurityConfig {
                                 "/memorial/comment/**", // 댓글 등록
                                 "/memorial/write", // 추모글 작성
                                 "/api/ai/ask",
-                                "/requests/apply"
+                                "/requests/apply",
+                                "/deceased_create",
+                                "/requests_dashboard"
                         )
                 )
-                .formLogin(form -> form.disable())
+                .formLogin(form -> form
+                        .loginPage("/user/login")          // 커스텀 로그인 페이지
+                        .loginProcessingUrl("/user/login") // 로그인 처리 URL
+                        .defaultSuccessUrl("/main", true)  // 성공 후 이동
+                        .permitAll()
+                )
+
                 .httpBasic(b -> b.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
@@ -68,7 +76,9 @@ public class SecurityConfig {
                                 "/static/**","/css/**","/js/**","/images/**",
                                 "/webjars/**",
                                 "/uploads/**",
-                                "/files/**"
+                                "/files/**",
+                                "/about",
+                                "/process"
                         ).permitAll()
                         .requestMatchers(
                                 "/user/login","/user/signup","/user/me",
@@ -88,6 +98,9 @@ public class SecurityConfig {
                                 "/memorial/memorial_write",
                                 "/memorial/write"
                         ).authenticated()
+
+                        .requestMatchers("/requests/apply").authenticated()
+                        .requestMatchers("/requests", "/dashboard").authenticated()
                         .requestMatchers("/deceased/**").authenticated()
                         .anyRequest().authenticated()
                 )
