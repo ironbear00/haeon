@@ -92,8 +92,7 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/user/login")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
-                        .permitAll()
-                );
+                        .permitAll());
         return http.build();
     }
 }
