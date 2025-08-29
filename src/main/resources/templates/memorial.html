@@ -7,6 +7,8 @@
     <title>온라인 추모 공간 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 
@@ -15,12 +17,10 @@
 <main>
     <h2>추모 게시판</h2>
 
-    <!-- 로그인 상태: 작성 페이지로 이동 -->
     <a sec:authorize="isAuthenticated()" th:href="@{/memorial/memorial_write}">
         추모글 작성하기
     </a>
 
-    <!-- 비로그인 상태: 로그인 페이지로 이동 -->
     <a sec:authorize="isAnonymous()" th:href="@{/user/login}">
         추모글 작성하기
     </a>
@@ -49,6 +49,13 @@
     const ME_ENDPOINT = API_BASE + "/user/me";
     const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
 
+    // CSRF 토큰을 메타 태그에서 읽어오는 함수
+    function getCsrfToken() {
+        const token = document.querySelector("meta[name='_csrf']").content;
+        const header = document.querySelector("meta[name='_csrf_header']").content;
+        return { token, header };
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const authStatus = document.getElementById("authStatus");
 
@@ -74,9 +81,16 @@
                         <span class="user-status-item">${user.name}님</span>
                         <button id="logoutBtn" class="logout-btn">로그아웃</button>
                     `;
-
+                // CSRF 토큰을 포함하도록 로그아웃 로직 수정
                 document.getElementById("logoutBtn").addEventListener("click", async () => {
-                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    const csrf = getCsrfToken();
+                    await fetch(LOGOUT_ENDPOINT, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: {
+                            [csrf.header]: csrf.token
+                        }
+                    });
                     window.location.reload();
                 });
             } else {

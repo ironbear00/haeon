@@ -7,6 +7,8 @@
     <title>추모공간 상세 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 
@@ -69,6 +71,13 @@
     const ME_ENDPOINT = API_BASE + "/user/me";
     const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
 
+    // CSRF 토큰을 메타 태그에서 읽어오는 함수
+    function getCsrfToken() {
+        const token = document.querySelector("meta[name='_csrf']").content;
+        const header = document.querySelector("meta[name='_csrf_header']").content;
+        return { token, header };
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const authStatus = document.getElementById("authStatus");
 
@@ -93,8 +102,16 @@
                         <span class="user-status-item">${user.name}님</span>
                         <button id="logoutBtn" class="logout-btn" >로그아웃</button>
                     `;
+                // CSRF 토큰을 포함하도록 로그아웃 로직 수정
                 document.getElementById("logoutBtn").addEventListener("click", async () => {
-                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    const csrf = getCsrfToken(); // CSRF 토큰 가져오기
+                    await fetch(LOGOUT_ENDPOINT, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: {
+                            [csrf.header]: csrf.token // CSRF 토큰을 헤더에 포함
+                        }
+                    });
                     window.location.reload();
                 });
             } else {

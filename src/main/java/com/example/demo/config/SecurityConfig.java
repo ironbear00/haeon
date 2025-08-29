@@ -42,7 +42,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                // CSRF 보호 활성화 (특정 경로만 예외)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/user/login", // CSRF 보호 무시 경로 추가
+                                "/memorial/comment/**", // 댓글 등록
+                                "/memorial/write" // 추모글 작성
+                        )
+                )
                 .formLogin(form -> form.disable())
                 .httpBasic(b -> b.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))

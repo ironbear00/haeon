@@ -7,7 +7,8 @@
     <title>추모글 작성하기 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" th:href="@{/css/main.css}" />
-
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div th:replace="~{common/header :: headerFragment}"></div>
@@ -16,6 +17,8 @@
     <h2>추모글 작성</h2>
 
     <form th:action="@{/memorial/write}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
         <section style="border:1px solid #ddd; padding:12px; margin-bottom:16px;">
             <h3>고인 선택</h3>
             <p>
@@ -87,7 +90,6 @@
         if (name) title.placeholder = `예: 故 ${name}님 추모공간`;
     }
 
-    // CSRF 토큰을 메타 태그에서 읽어오는 함수
     function getCsrfToken() {
         const token = document.querySelector("meta[name='_csrf']").content;
         const header = document.querySelector("meta[name='_csrf_header']").content;
@@ -118,10 +120,10 @@
                             method: "POST",
                             credentials: "include",
                             headers: {
-                                [csrf.header]: csrf.token // CSRF 토큰을 헤더에 포함
+                                [csrf.header]: csrf.token
                             }
                         });
-                        window.location.reload();
+                        window.location.href = '/user/login';
                     });
                 } else {
                     authStatus.innerHTML = `
