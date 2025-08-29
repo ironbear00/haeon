@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Random;
 
 @SpringBootTest
-@ActiveProfiles("yamyam")
+@ActiveProfiles("seob")
 class HaeonApplicationTests {
 
     @Autowired private UserRepository userRepository;
