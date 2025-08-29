@@ -15,6 +15,24 @@ document.addEventListener("DOMContentLoaded", function() {
     const submitBtn = document.getElementById('submitBtn');
     const resetBtn = document.getElementById('resetBtn');
 
+    // **********************************
+    // * 새로 추가된 initializeStep 함수 *
+    // **********************************
+    function initializeStep() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const step = urlParams.get('step');
+
+        // "step=upload" 파라미터가 있으면 파일 업로드 단계(인덱스 4)로 이동
+        if (step === 'upload') {
+            goToStep(4);
+            return;
+        }
+
+        // 그 외의 경우, 첫 번째 단계(인덱스 0)로 이동
+        showStep(0);
+    }
+    // **********************************
+
 
     function showStep(stepIndex) {
         steps.forEach((step, index) => {
@@ -176,5 +194,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     resetBtn.addEventListener('click', () => window.location.reload());
 
-    showStep(0);
+    // **********************************************
+    // * 기존 showStep(0)를 initializeStep() 호출로 대체 *
+    // **********************************************
+    initializeStep();
 });

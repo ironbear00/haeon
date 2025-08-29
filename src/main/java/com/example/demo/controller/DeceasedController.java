@@ -38,14 +38,23 @@ public class DeceasedController {
         return "deceased_create";
     }
 
-    /** 등록 처리 */
+
+
+    // DeceasedController.java (수정된 부분)
     @PostMapping("/create")
     public String create(HttpSession session,
-                         @ModelAttribute("deceased") DeceasedRequest req) {
+                         @ModelAttribute("deceased") DeceasedRequest req,
+                         @RequestParam(value = "from", required = false) String from) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) throw new IllegalStateException("로그인 상태가 아닙니다.");
 
-        deceasedService.createDeceased(userId, req);
+        DeceasedResponse saved = deceasedService.createDeceased(userId, req);
+
+        if ("apply".equals(from)) {
+
+            return "redirect:/requests/apply?step=upload&targetId=" + saved.getId();
+        }
+
         return "redirect:/deceased";
     }
 
@@ -53,7 +62,7 @@ public class DeceasedController {
     @GetMapping("/edit")
     public String editForm(@RequestParam("id") Long id, Model model) {
         DeceasedResponse response = deceasedService.getDeceasedById(id);
-
+        model.addAttribute("deceased", response);
         return "deceased_edit";
     }
 

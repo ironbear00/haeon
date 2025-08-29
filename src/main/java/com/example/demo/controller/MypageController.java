@@ -17,7 +17,7 @@ public class MypageController {
 
     private final MypageService mypageService;
 
-    @GetMapping
+@GetMapping
     public String mypage() {
         return "mypage";
     }
