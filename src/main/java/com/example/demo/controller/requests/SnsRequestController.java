@@ -1,7 +1,9 @@
 package com.example.demo.controller.requests;
 
+import com.example.demo.dto.DeceasedResponse;
 import com.example.demo.dto.requests.SnsRequestDTO;
 import com.example.demo.dto.requests.SnsRequestSummaryDTO;
+import com.example.demo.service.DeceasedService;
 import com.example.demo.service.requests.SnsRequestService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,8 @@ import static com.example.demo.controller.UserController.SESSION_USER_ID;
 public class SnsRequestController {
 
     private final SnsRequestService snsRequestService;
-
+    private final DeceasedService deceasedService;
+    
     @GetMapping("/dashboard")
     public String requestsDashboardPage(Model model, HttpSession session)
     {
@@ -37,10 +40,26 @@ public class SnsRequestController {
     }
 
     @GetMapping("/apply")
-    public String requestsApplyPage(){
+    public String requestsApplyPage(
+            @RequestParam(value = "step", required = false) String step,
+            @RequestParam(value = "targetId", required = false) Long targetId,
+            Model model) {
+
+        if (targetId != null) {
+            // ★★★ 서비스 호출 후 null 체크 로직 추가 ★★★
+            DeceasedResponse deceased = deceasedService.getDeceasedById(targetId);
+
+            if (deceased == null) {
+                // 고인 정보가 없을 경우 에러 페이지로 리다이렉트하거나 404 에러를 반환
+                // 여기서는 에러 메시지를 포함하여 리다이렉트하는 방식으로 처리합니다.
+                return "redirect:/error?message=Deceased information not found.";
+            }
+
+            model.addAttribute("deceased", deceased);
+        }
+
         return "apply";
     }
-
 
     @PostMapping("/apply")
     @ResponseBody

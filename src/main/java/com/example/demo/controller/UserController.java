@@ -70,6 +70,7 @@ public class UserController {
 
         // (선택) 사용자 id도 세션에 저장
         request.getSession(true).setAttribute(SESSION_USER_ID, user.getId());
+        request.getSession(true).setAttribute("LOGIN_USER_NAME", user.getName());
 
         // 6) 응답
         return ResponseEntity.ok(toResponse(user));

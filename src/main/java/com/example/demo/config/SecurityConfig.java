@@ -48,7 +48,8 @@ public class SecurityConfig {
                                 "/user/login", // CSRF 보호 무시 경로 추가
                                 "/memorial/comment/**", // 댓글 등록
                                 "/memorial/write", // 추모글 작성
-                                "/api/ai/ask"
+                                "/api/ai/ask",
+                                "/requests/apply"
                         )
                 )
                 .formLogin(form -> form.disable())
@@ -89,7 +90,6 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers("/deceased/**").authenticated()
                         .anyRequest().authenticated()
-
                 )
                 .logout(logout -> logout
                         .logoutUrl("/user/logout")

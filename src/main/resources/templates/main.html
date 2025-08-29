@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="stylesheet" th:href="@{/css/main.css}" />
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 
@@ -29,75 +27,6 @@
 
 <div th:replace="~{common/footer :: footerFragment}"></div>
 
-<script>
-    const API_BASE = "http://localhost:8080";
-    const ME_ENDPOINT = API_BASE + "/user/me";
-    const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
-
-    // CSRF 토큰을 메타 태그에서 읽어오는 함수
-    function getCsrfToken() {
-        const token = document.querySelector("meta[name='_csrf']").content;
-        const header = document.querySelector("meta[name='_csrf_header']").content;
-        return { token, header };
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const authStatus = document.getElementById("authStatus");
-
-        async function fetchMe() {
-            try {
-                const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-
-                // HTTP 상태 코드가 403 (Forbidden)일 경우 로그인 페이지로 리디렉션
-                if (res.status === 403) {
-                    window.location.href = "/user/login";
-                    return null;
-                }
-
-                if (res.ok) {
-                    return await res.json();
-                }
-                return null;
-            } catch (err) {
-                console.error("Failed to fetch user info:", err);
-                return null;
-            }
-        }
-
-        function updateUI(user) {
-            if (!authStatus) return;
-
-            authStatus.innerHTML = "";
-            if (user) {
-                authStatus.innerHTML = `
-                        <span class="user-status-item">${user.name}님</span>
-                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
-                    `;
-
-                document.getElementById("logoutBtn").addEventListener("click", async () => {
-                    const csrf = getCsrfToken(); // CSRF 토큰 가져오기
-                    await fetch(LOGOUT_ENDPOINT, {
-                        method: "POST",
-                        credentials: "include",
-                        headers: {
-                            [csrf.header]: csrf.token // CSRF 토큰을 헤더에 추가
-                        }
-                    });
-                    window.location.reload();
-                });
-            } else {
-                authStatus.innerHTML = `
-                        <a class="user-status-btn" href="/user/login">로그인</a>
-                        <a class="user-status-btn" href="/user/signup">회원가입</a>
-                    `;
-            }
-        }
-
-        (async () => {
-            const user = await fetchMe();
-            updateUI(user);
-        })();
-    });
-</script>
+<!---->
 </body>
 </html>

@@ -32,6 +32,49 @@
             </div>
         </div>
 
+        <div id="step-deceased-info" class="form-step">
+            <p class="chat-bubble heon">고인의 기본 정보를 입력해주세요.</p>
+            <form th:action="@{/deceased/create}" method="post" class="user-input">
+                <input type="hidden" name="from" value="apply"/>
+
+                <div class="input-row">
+                    <label>성명</label>
+                    <input type="text" name="name" required />
+                </div>
+
+                <div class="input-row">
+                    <label>생년월일</label>
+                    <input type="date" name="birthDate" required />
+                </div>
+
+                <div class="input-row">
+                    <label>사망일</label>
+                    <input type="date" name="deathDate" required />
+                </div>
+
+                <div class="input-row">
+                    <label>장례일</label>
+                    <input type="date" name="funeralDate" required />
+                </div>
+
+                <div class="input-row">
+                    <label>전화번호</label>
+                    <input type="text" name="phone" placeholder="010-1234-5678" />
+                </div>
+
+                <div class="input-row">
+                    <label>성별</label>
+                    <select name="gender" required>
+                        <option value="MALE">남성</option>
+                        <option value="FEMALE">여성</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="next-btn">저장 다음단계로</button>
+            </form>
+        </div>
+
+
         <div id="step-doc1" class="form-step hidden">
             <p class="chat-bubble heon">1. 가족관계증명서를 업로드해주세요.</p>
             <div class="drop-zone" id="dropzone-doc1">

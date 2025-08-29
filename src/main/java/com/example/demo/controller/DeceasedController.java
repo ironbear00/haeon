@@ -20,7 +20,7 @@ public class DeceasedController {
 
     private final DeceasedService deceasedService;
 
-    /** 고인 목록 페이지 (로그인 사용자 소유분만) */
+    /** 고인 목록 페이지 */
     @GetMapping
     public String list(HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
@@ -47,16 +47,22 @@ public class DeceasedController {
     /** 등록 처리 */
     @PostMapping("/create")
     public String create(HttpSession session,
-                         @ModelAttribute("deceased") DeceasedRequest req) {
+                         @ModelAttribute("deceased") DeceasedRequest req,
+                         @RequestParam(value = "from", required = false) String from) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
-        if (userId == null) {
-            return "redirect:/user/login?next=/deceased/create";
+        if (userId == null) throw new IllegalStateException("로그인 상태가 아닙니다.");
+
+        DeceasedResponse saved = deceasedService.createDeceased(userId, req);
+
+        if ("apply".equals(from)) {
+
+            return "redirect:/requests/apply?step=upload&targetId=" + saved.getId();
         }
-        deceasedService.createDeceased(userId, req); // ⬅ 생성 시 managerUser를 userId로 설정
+
         return "redirect:/deceased";
     }
 
-    /** 수정 폼 페이지 (소유권 검증 + 모델 주입) */
+    /** 수정 폼 페이지 */
     @GetMapping("/edit")
     public String editForm(@RequestParam("id") Long id,
                            HttpSession session,
@@ -84,7 +90,7 @@ public class DeceasedController {
         return "redirect:/deceased";
     }
 
-    /** 삭제 처리 (소유권 검증) */
+    /** 삭제 처리 */
     @PostMapping("/delete")
     public String delete(@RequestParam("id") Long id, HttpSession session) {
         Long userId = (Long) session.getAttribute(SESSION_USER_ID);
