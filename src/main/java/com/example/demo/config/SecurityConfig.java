@@ -25,63 +25,66 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /** CORS 설정 */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // 로컬 프런트 허용
         config.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
-        // 메서드 허용
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // 헤더 허용 (쿠키/JSON 요청 시 필요)
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
-        // 응답 헤더 노출(필요 시)
-        config.setExposedHeaders(List.of("Location"));
-        // 쿠키 허용
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 
-    /** 보안 필터 체인 */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
+                // CSRF 보호 활성화 (특정 경로만 예외)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/user/login", // CSRF 보호 무시 경로 추가
+                                "/memorial/comment/**", // 댓글 등록
+                                "/memorial/write" // 추모글 작성
+                        )
+                )
                 .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
+                .httpBasic(b -> b.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        // OPTIONS 프리플라이트 전부 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // ✅ 공개 엔드포인트
                         .requestMatchers(
-                                "/", "/main",
+                                "/",
+                                "/main",
                                 "/error",
-                                "/user/login", "/user/signup",
-                                "/api/users/login", "/api/users/signup", "/api/user/login", "/api/ping",
-                                "/memorial", "/memorial/**",
-                                "/mypage/info", "/mypage/**",
-                                "/user/me", "/api/users/me",
-                                "/user/auth/status"
-                                // ✅ AI API 공개
+                                "/favicon.ico",
+                                "/*.html","/*.css","/*.js","/*.ico",
+                                "/*.png","/*.jpg","/*.jpeg","/*.gif",
+                                "/*.svg","/*.webp","/*.woff","/*.woff2","/*.ttf",
+                                "/static/**","/css/**","/js/**","/images/**",
+                                "/webjars/**",
+                                "/uploads/**",
+                                "/files/**"
                         ).permitAll()
-
-                        // ✅ 정적 리소스
                         .requestMatchers(
-                                "/*.html", "/*.css", "/*.js", "/*.ico",
-                                "/*.png", "/*.jpg", "/*.jpeg", "/*.gif",
-                                "/*.svg", "/*.webp", "/*.woff", "/*.woff2", "/*.ttf",
-                                "/static/**", "/css/**", "/js/**",
-                                "/images/**", "/webjars/**"
+                                "/user/login","/user/signup","/user/me",
+                                "/api/users/login","/api/users/signup","/api/user/login","/api/users/me",
+                                "/api/ping"
                         ).permitAll()
-
-                        // 나머지는 인증 필요
+                        .requestMatchers(
+                                "/memorial",
+                                "/memorial/",
+                                "/memorial/detail/**",
+                                "/memorial/password_check/**",
+                                "/memorial/comment/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/memorial/memorial_write",
+                                "/memorial/write"
+                        ).authenticated()
+                        .requestMatchers("/deceased/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
@@ -89,9 +92,7 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/user/login")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
-                        .permitAll()
-                );
-
+                        .permitAll());
         return http.build();
     }
 }
