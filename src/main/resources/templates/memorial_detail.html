@@ -7,6 +7,8 @@
     <title>추모공간 상세 - 헤온</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 
@@ -14,11 +16,18 @@
 
 <main>
     <div id="deceased_info_detail">
-        <img th:src="@{${post.deceasedPhotoPath}}" alt="고인 프로필 사진" style="width:200px; border-radius: 50%;">
+        <img th:if="${post.deceasedPhotoPath != null}"
+             th:src="${post.deceasedPhotoPath}"
+             alt="고인 프로필 사진"
+             style="width:200px; border-radius: 50%;">
 
         <p><strong>성함:</strong> <span th:text="|故 ${post.deceased.name}님|"></span></p>
-        <p><strong>생년월일:</strong> <span th:text="${#temporals.format(post.deceased.birthDate, 'yyyy-MM-dd')}"></span></p>
-        <p><strong>사망일:</strong> <span th:text="${#temporals.format(post.deceased.deathDate, 'yyyy-MM-dd')}"></span></p>
+        <p><strong>생년월일:</strong>
+            <span th:text="${post.deceased.birthDate != null ? #temporals.format(post.deceased.birthDate, 'yyyy-MM-dd') : '-'}"></span>
+        </p>
+        <p><strong>사망일:</strong>
+            <span th:text="${post.deceased.deathDate != null ? #temporals.format(post.deceased.deathDate, 'yyyy-MM-dd') : '-'}"></span>
+        </p>
         <p><strong>추모글:</strong> <span th:text="${post.content}"></span></p>
     </div>
 
@@ -39,13 +48,19 @@
 
         <h3>댓글 목록</h3>
         <div th:each="comment : ${post.comments}" style="border:1px solid #eee; padding:10px; margin-bottom:10px;">
-            <p><strong><span th:text="${comment.author?.name ?: comment.authorName}"></span>:</strong> <span th:text="${comment.content}"></span></p>
+            <p>
+                <strong>
+                    <span th:text="${comment.author != null ? comment.author.name : comment.authorName}"></span>:
+                </strong>
+                <span th:text="${comment.content}"></span>
+            </p>
         </div>
 
         <div th:if="${#lists.isEmpty(post.comments)}">
             <p>아직 작성된 댓글이 없습니다.</p>
         </div>
     </div>
+
     <p><a href="/memorial">목록으로 돌아가기</a></p>
 </main>
 
@@ -55,6 +70,13 @@
     const API_BASE = "http://localhost:8080";
     const ME_ENDPOINT = API_BASE + "/user/me";
     const LOGOUT_ENDPOINT = API_BASE + "/user/logout";
+
+    // CSRF 토큰을 메타 태그에서 읽어오는 함수
+    function getCsrfToken() {
+        const token = document.querySelector("meta[name='_csrf']").content;
+        const header = document.querySelector("meta[name='_csrf_header']").content;
+        return { token, header };
+    }
 
     document.addEventListener("DOMContentLoaded", function() {
         const authStatus = document.getElementById("authStatus");
@@ -78,10 +100,18 @@
             if (user) {
                 authStatus.innerHTML = `
                         <span class="user-status-item">${user.name}님</span>
-                        <button id="logoutBtn" class="logout-btn">로그아웃</button>
+                        <button id="logoutBtn" class="logout-btn" >로그아웃</button>
                     `;
+                // CSRF 토큰을 포함하도록 로그아웃 로직 수정
                 document.getElementById("logoutBtn").addEventListener("click", async () => {
-                    await fetch(LOGOUT_ENDPOINT, { method: "POST", credentials: "include" });
+                    const csrf = getCsrfToken(); // CSRF 토큰 가져오기
+                    await fetch(LOGOUT_ENDPOINT, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: {
+                            [csrf.header]: csrf.token // CSRF 토큰을 헤더에 포함
+                        }
+                    });
                     window.location.reload();
                 });
             } else {
