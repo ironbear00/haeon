@@ -10,6 +10,7 @@ import com.example.demo.repository.memorial.CommentRepository;
 import com.example.demo.repository.memorial.PostRepository;
 import com.example.demo.service.PostService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity; // 추가
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -26,6 +27,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map; // 추가
 import java.util.UUID;
 
 @Controller
@@ -210,5 +212,53 @@ public class MemorialController {
 
         commentRepository.save(comment);
         return "redirect:/memorial/detail/" + uuid;
+    }
+
+    // 게시글 삭제 기능 추가
+    @DeleteMapping("/delete/{uuid}")
+    public ResponseEntity<String> deletePost(@PathVariable String uuid, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        try {
+            postService.deletePost(uuid, principal.getName());
+            return ResponseEntity.ok().body("게시글이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("게시글 삭제 중 오류가 발생했습니다.");
+        }
+    }
+
+    // 게시글 수정 기능 추가
+    @PutMapping("/edit/{uuid}")
+    @Transactional
+    public ResponseEntity<String> editPost(@PathVariable String uuid,
+                                           @RequestBody Map<String, String> payload,
+                                           Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        Post post = postService.findByUuidLink(uuid);
+        if (post == null) {
+            return ResponseEntity.status(404).body("게시글을 찾을 수 없습니다.");
+        }
+
+        // 권한 확인: 현재 로그인한 사용자가 게시글의 작성자인지 확인
+        if (!post.getAuthor().getEmail().equals(principal.getName())) {
+            return ResponseEntity.status(403).body("수정 권한이 없습니다.");
+        }
+
+        // 추모글 내용 업데이트
+        String newContent = payload.get("content");
+        if (newContent != null) {
+            post.setContent(newContent);
+            postRepository.save(post);
+            return ResponseEntity.ok().body("게시글이 성공적으로 수정되었습니다.");
+        } else {
+            return ResponseEntity.status(400).body("수정할 내용이 없습니다.");
+        }
     }
 }
