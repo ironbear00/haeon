@@ -44,7 +44,7 @@ public class SnsRequestController {
 
     @PostMapping("/apply")
     @ResponseBody
-    public ResponseEntity<Void> applySnsRequest(
+    public ResponseEntity<Void> createSnsRequest(
             @ModelAttribute SnsRequestDTO dto,
             HttpSession session) {
 
