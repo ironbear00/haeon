@@ -14,10 +14,14 @@ import com.example.demo.repository.*;
 import com.example.demo.repository.memorial.CommentRepository;
 import com.example.demo.repository.memorial.PostRepository;
 import com.example.demo.repository.requests.SnsRequestRepository;
+import com.example.demo.repository.utils.FileTypeRepository;
 import com.example.demo.repository.utils.SnsPlatformRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.utils.StatusRepository;
+import com.example.demo.service.requests.processors.GoogleProcessor;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,8 +41,9 @@ class HaeonApplicationTests {
     @Autowired private CommentRepository commentRepository;
     @Autowired private SnsRequestRepository snsRequestRepository;
     @Autowired private SnsPlatformRepository snsPlatformRepository;
+    @Autowired private FileTypeRepository fileTypeRepository;
 
-    private final Random random = new Random();
+    @Autowired private GoogleProcessor googleProcessor;
 
     //region user CRUD
     //
@@ -433,6 +438,23 @@ class HaeonApplicationTests {
         SnsRequest updated = snsRequestRepository.save(request);
 
         System.out.println("Updated Request ID: " + updated.getId() + ", New reason: " + updated.getReason());
+    }
+    //endregion
+
+    //region Google process test
+    //
+    //
+    @Test
+    @DisplayName("GoogleProcessor는 RPA 작업을 성공적으로 완료하고 상태를 COMPLETED로 변경한다")
+    void processGoogleRequest_Success() {
+        Long testRequestId = 1L;
+
+        SnsRequest existingRequest = snsRequestRepository.findById(testRequestId)
+                .orElseThrow(() -> new IllegalArgumentException("ID " + testRequestId + "에 해당하는 요청이 DB에 없습니다."));
+
+        googleProcessor.process(existingRequest);
+        SnsRequest updatedRequest = snsRequestRepository.findById(testRequestId).get();
+        Assertions.assertEquals("COMPLETED", updatedRequest.getStatus());
     }
     //endregion
 }
