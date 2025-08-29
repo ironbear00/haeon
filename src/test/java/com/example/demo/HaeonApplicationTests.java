@@ -14,10 +14,14 @@ import com.example.demo.repository.*;
 import com.example.demo.repository.memorial.CommentRepository;
 import com.example.demo.repository.memorial.PostRepository;
 import com.example.demo.repository.requests.SnsRequestRepository;
+import com.example.demo.repository.utils.FileTypeRepository;
 import com.example.demo.repository.utils.SnsPlatformRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.utils.StatusRepository;
+import com.example.demo.service.requests.processors.GoogleProcessor;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +32,6 @@ import java.util.List;
 import java.util.Random;
 
 @SpringBootTest
-@ActiveProfiles("yamyam")
 class HaeonApplicationTests {
 
     @Autowired private UserRepository userRepository;
@@ -38,8 +41,9 @@ class HaeonApplicationTests {
     @Autowired private CommentRepository commentRepository;
     @Autowired private SnsRequestRepository snsRequestRepository;
     @Autowired private SnsPlatformRepository snsPlatformRepository;
+    @Autowired private FileTypeRepository fileTypeRepository;
 
-    private final Random random = new Random();
+    @Autowired private GoogleProcessor googleProcessor;
 
     //region user CRUD
     //
@@ -57,7 +61,7 @@ class HaeonApplicationTests {
             user.setBirthDate(LocalDate.of(1970 + random.nextInt(30), 1 + random.nextInt(12), 1 + random.nextInt(28)));
             user.setGender(Gender.values()[random.nextInt(Gender.values().length)]);
 
-            user.setEmail("user" + i + "@example.com");
+            user.setEmail("usera" + i + "@example.com");
             user.setPassword("password" + i); // 실제 서비스면 암호화 필요
             AuthProvider provider = AuthProvider.values()[random.nextInt(AuthProvider.values().length)];
             user.setProvider(provider);
@@ -339,38 +343,78 @@ class HaeonApplicationTests {
     //create request
     @Test
     public void createRequest(){
-        User user = userRepository.findById(11L)
-                .orElseThrow(() -> new RuntimeException("User with id=1 not found"));
-        Deceased deceased = deceasedRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Deceased with id=1 not found"));
-        SnsPlatform platform = snsPlatformRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("SnsPlatform with id=1 not found"));
+//        User user = userRepository.findById(1L)
+//                .orElseThrow(() -> new RuntimeException("User with id=1 not found"));
+//        Deceased deceased = deceasedRepository.findById(1L)
+//                .orElseThrow(() -> new RuntimeException("Deceased with id=1 not found"));
+//        SnsPlatform platform = snsPlatformRepository.findById(1L)
+//                .orElseThrow(() -> new RuntimeException("SnsPlatform with id=1 not found"));
+//
+//        SnsRequest request = new SnsRequest();
+//        request.setRequester(user);
+//        request.setDeceased(deceased);
+//        request.setSnsPlatform(platform);
+//        Status submittedStatus = statusRepository.findByCode("SUBMITTED")
+//                .orElseThrow(() -> new RuntimeException("Status SUBMITTED not found"));
+//
+//        request.setStatus(submittedStatus.getCode());
+//        request.setReason("계정 삭제 요청");
+//
+//        RequestFile file1 = new RequestFile();
+//        file1.setFilePath("/uploads/file1.pdf");
+//        file1.setOriginalFileName("file1.pdf");
+//        file1.setFileType(null); // 필요 시 FileType 지정
+//        request.addFile(file1);
+//
+//        RequestFile file2 = new RequestFile();
+//        file2.setFilePath("/uploads/file2.png");
+//        file2.setOriginalFileName("file2.png");
+//        file2.setFileType(null);
+//        request.addFile(file2);
+//
+//        SnsRequest saved = snsRequestRepository.save(request);
+//
+//        System.out.println("Saved Request ID: " + saved.getId() + ", Files count: " + saved.getFiles().size());
 
-        SnsRequest request = new SnsRequest();
-        request.setRequester(user);
-        request.setDeceased(deceased);
-        request.setSnsPlatform(platform);
-        Status submittedStatus = statusRepository.findByCode("SUBMITTED")
-                .orElseThrow(() -> new RuntimeException("Status SUBMITTED not found"));
+        for (long i = 1; i <= 20; i++) {
+            final long userId = i; // 람다에서 참조할 수 있도록 final 변수로 복사
 
-        request.setStatus(submittedStatus.getCode());
-        request.setReason("계정 삭제 요청");
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User with id=" + userId + " not found"));
 
-        RequestFile file1 = new RequestFile();
-        file1.setFilePath("/uploads/file1.pdf");
-        file1.setOriginalFileName("file1.pdf");
-        file1.setFileType(null); // 필요 시 FileType 지정
-        request.addFile(file1);
+            Deceased deceased = deceasedRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Deceased with id=" + userId + " not found"));
 
-        RequestFile file2 = new RequestFile();
-        file2.setFilePath("/uploads/file2.png");
-        file2.setOriginalFileName("file2.png");
-        file2.setFileType(null);
-        request.addFile(file2);
+            SnsPlatform platform = snsPlatformRepository.findById(userId % 4 + 1L)
+                    .orElseThrow(() -> new RuntimeException("SnsPlatform with id=" + (userId % 4 + 1) + " not found"));
 
-        SnsRequest saved = snsRequestRepository.save(request);
+            Status submittedStatus = statusRepository.findByCode("SUBMITTED")
+                    .orElseThrow(() -> new RuntimeException("Status SUBMITTED not found"));
 
-        System.out.println("Saved Request ID: " + saved.getId() + ", Files count: " + saved.getFiles().size());
+            SnsRequest request = new SnsRequest();
+            request.setRequester(user);
+            request.setDeceased(deceased);
+            request.setSnsPlatform(platform);
+            request.setStatus(submittedStatus.getCode());
+            request.setReason("계정 삭제 요청 (" + userId + "번)");
+
+            RequestFile file1 = new RequestFile();
+            file1.setFilePath("/uploads/file" + userId + "_1.pdf");
+            file1.setOriginalFileName("file" + userId + "_1.pdf");
+            request.addFile(file1);
+
+            RequestFile file2 = new RequestFile();
+            file2.setFilePath("/uploads/file" + userId + "_2.png");
+            file2.setOriginalFileName("file" + userId + "_2.png");
+            request.addFile(file2);
+
+            SnsRequest saved = snsRequestRepository.save(request);
+
+            System.out.println("Saved Request ID: " + saved.getId()
+                    + " (user=" + user.getId()
+                    + ", deceased=" + deceased.getId()
+                    + ", platform=" + platform.getId() + ")");
+        }
     }
 
     @Test
@@ -434,6 +478,23 @@ class HaeonApplicationTests {
         SnsRequest updated = snsRequestRepository.save(request);
 
         System.out.println("Updated Request ID: " + updated.getId() + ", New reason: " + updated.getReason());
+    }
+    //endregion
+
+    //region Google process test
+    //
+    //
+    @Test
+    @DisplayName("GoogleProcessor는 RPA 작업을 성공적으로 완료하고 상태를 COMPLETED로 변경한다")
+    void processGoogleRequest_Success() {
+        Long testRequestId = 1L;
+
+        SnsRequest existingRequest = snsRequestRepository.findById(testRequestId)
+                .orElseThrow(() -> new IllegalArgumentException("ID " + testRequestId + "에 해당하는 요청이 DB에 없습니다."));
+
+        googleProcessor.process(existingRequest);
+        SnsRequest updatedRequest = snsRequestRepository.findById(testRequestId).get();
+        Assertions.assertEquals("COMPLETED", updatedRequest.getStatus());
     }
     //endregion
 }

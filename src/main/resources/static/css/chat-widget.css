@@ -1,0 +1,53 @@
+/* 숨김 강제 */
+.hidden { display: none !important; }
+
+/* 버튼/모달 레이어 우선순위 */
+#chat-fab { z-index: 9999; }
+#chat-modal { z-index: 9998; }
+#chat-modal-overlay { z-index: 9997; }
+
+/* 버튼 스타일 */
+#chat-fab {
+    position: fixed; right: 20px; bottom: 24px;
+    width: 56px; height: 56px; border-radius: 50%;
+    border: none; cursor: pointer; font-size: 20px;
+    background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.2);
+}
+
+/* 모달 기본 */
+#chat-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); }
+#chat-modal {
+    position: fixed; right: 20px; bottom: 90px; width: 360px; max-height: 70vh;
+    background: #fff; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,.25);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.chat-modal-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 14px;
+    border-bottom:1px solid #eee;
+}
+.chat-modal-content { padding:12px 14px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+#chat-input-area { display:flex; gap:8px; padding:10px 12px; border-top:1px solid #eee; }
+#chat-input { flex:1; }
+
+.chat-bubble {
+    max-width:70%;
+    padding:10px 12px;
+    border-radius:12px;
+    font-size:14px;
+    line-height:1.6;
+    white-space: normal;    /* HTML 줄바꿈/리스트 반영 */
+    word-break: break-word;
+}
+.bot { background:#f1f3f5; align-self:flex-start; }
+.me  { background:#e7f5ff; align-self:flex-end; }
+
+.chat-actions { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.chat-actions button { padding:10px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; }
+
+/* HTML 구조용 스타일 */
+.chat-bubble p { margin: 0 0 6px; }
+.chat-bubble ul { margin: 0 0 6px 18px; padding: 0; }
+.chat-bubble li { margin: 2px 0; }

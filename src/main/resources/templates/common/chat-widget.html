@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 공통 채팅 위젯 프래그먼트 -->
+<div th:fragment="chatWidget">
+    <!-- 스크롤 따라오는 버튼 -->
+    <button id="chat-fab" aria-label="채팅 열기">💬</button>
+
+    <!-- 오버레이 -->
+    <div id="chat-modal-overlay" class="hidden" aria-hidden="true"></div>
+
+    <!-- 모달 -->
+    <div id="chat-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
+        <div class="chat-modal-header">
+            <h2 id="chat-modal-title">상담 도우미</h2>
+            <button id="chat-close-btn" aria-label="닫기">✕</button>
+        </div>
+
+        <div id="chat-content" class="chat-modal-content"><!-- JS로 내용 채움 --></div>
+
+        <!-- 로그인 시에만 표시할 입력영역 -->
+        <div id="chat-input-area" class="hidden">
+            <input id="chat-input" type="text" placeholder="메시지를 입력하세요" />
+            <button id="chat-send-btn" type="button">전송</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

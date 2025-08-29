@@ -1,4 +1,4 @@
-package com.example.demo.service.Requests;
+package com.example.demo.service.requests;
 
 import com.example.demo.domain.Deceased;
 import com.example.demo.domain.User;
@@ -20,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -37,6 +35,7 @@ public class SnsRequestService {
     private final SnsPlatformRepository snsPlatformRepository;
     private final DeceasedRepository deceasedRepository;
     private final FileStore fileStore;
+    private final RequestProcessingService requestProcessingService;
 
     public void createSnsRequests(Long userId, SnsRequestDTO dto) throws IOException {
 
@@ -73,6 +72,8 @@ public class SnsRequestService {
             snsRequest.addFile(createRequestFile(applicantIdPath, applicantIdType));
 
             snsRequestRepository.save(snsRequest);
+            SnsRequest savedRequest = snsRequestRepository.save(snsRequest);
+            requestProcessingService.processSnsRequest(savedRequest.getId());
         }
     }
 

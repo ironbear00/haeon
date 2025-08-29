@@ -23,12 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * 회원가입
-     * - 이메일, 이름, 비밀번호 필수 검증
-     * - 이메일 중복 체크 및 정규화(공백 제거 + 소문자)
-     * - 비밀번호 암호화
-     */
+
     @Transactional
     public UserResponse signup(SignupRequest req) {
         String email = normalizeEmail(req.getEmail());
@@ -65,10 +60,7 @@ public class UserService {
         return toResponse(saved);
     }
 
-    /**
-     * 로그인 인증
-     * - 이메일과 비밀번호를 검증하여 User 엔티티 반환
-     */
+
     @Transactional(readOnly = true)
     public User authenticate(LoginRequest req) {
         String email = normalizeEmail(req.getEmail());
@@ -86,10 +78,7 @@ public class UserService {
         return user;
     }
 
-    /**
-     * 내 프로필 조회
-     * - userId로 사용자 정보 조회
-     */
+
     @Transactional(readOnly = true)
     public UserResponse getProfile(Long userId) {
         if (userId == null) {
@@ -102,9 +91,6 @@ public class UserService {
         return toResponse(user);
     }
 
-    // ==========================
-    // 내부 유틸 메서드
-    // ==========================
 
     // 안전하게 문자열 앞뒤 공백 제거
     private String safeTrim(String s) {
