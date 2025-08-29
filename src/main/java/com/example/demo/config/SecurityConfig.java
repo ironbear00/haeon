@@ -33,12 +33,13 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
         // 메서드 허용
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // ✅ 헤더 허용 (쿠키/JSON 요청 시 필요)
+        // 헤더 허용 (쿠키/JSON 요청 시 필요)
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
-        // ✅ 응답 헤더 노출(필요 시)
+        // 응답 헤더 노출(필요 시)
         config.setExposedHeaders(List.of("Location"));
         // 쿠키 허용
         config.setAllowCredentials(true);
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -61,22 +62,23 @@ public class SecurityConfig {
                         // ✅ 공개 엔드포인트
                         .requestMatchers(
                                 "/", "/main",
-                                "/error",                    // 에러 페이지 공개 권장
+                                "/error",
                                 "/user/login", "/user/signup",
                                 "/api/users/login", "/api/users/signup", "/api/user/login", "/api/ping",
                                 "/memorial", "/memorial/**",
                                 "/mypage/info", "/mypage/**",
                                 "/user/me", "/api/users/me",
-                                "/user/auth/status"            // 로그인 상태 확인 공개
+                                "/user/auth/status"
+                                // ✅ AI API 공개
                         ).permitAll()
 
-                        // ✅ 정적 리소스 (JS 추가!)
+                        // ✅ 정적 리소스
                         .requestMatchers(
                                 "/*.html", "/*.css", "/*.js", "/*.ico",
                                 "/*.png", "/*.jpg", "/*.jpeg", "/*.gif",
                                 "/*.svg", "/*.webp", "/*.woff", "/*.woff2", "/*.ttf",
-                                "/static/**", "/css/**", "/js/**",   // /js/** 추가
-                                "/images/**", "/webjars/**"          // (선택) 확장 대비
+                                "/static/**", "/css/**", "/js/**",
+                                "/images/**", "/webjars/**"
                         ).permitAll()
 
                         // 나머지는 인증 필요

@@ -1,8 +1,10 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
 <!-- 공통 채팅 위젯 프래그먼트 -->
 <div th:fragment="chatWidget">
     <!-- 스크롤 따라오는 버튼 -->
-    <button id="chat-fab" type="button" aria-label="채팅 열기"
-            onclick="return window.__openChat && window.__openChat(event)">💬</button> <!-- 인라인 핸들러 보루 -->
+    <button id="chat-fab" aria-label="채팅 열기">💬</button>
 
     <!-- 오버레이 -->
     <div id="chat-modal-overlay" class="hidden" aria-hidden="true"></div>
@@ -11,7 +13,7 @@
     <div id="chat-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
         <div class="chat-modal-header">
             <h2 id="chat-modal-title">상담 도우미</h2>
-            <button id="chat-close-btn" type="button" aria-label="닫기">✕</button>
+            <button id="chat-close-btn" aria-label="닫기">✕</button>
         </div>
 
         <div id="chat-content" class="chat-modal-content"><!-- JS로 내용 채움 --></div>
@@ -23,3 +25,5 @@
         </div>
     </div>
 </div>
+</body>
+</html>

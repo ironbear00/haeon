@@ -20,12 +20,68 @@ function pushBubble(text, who = 'bot') {
     if (!wrap) return;
     const div = document.createElement('div');
     div.className = `chat-bubble ${who}`;
-    div.textContent = text;
+    div.innerHTML = toHtml(text);   // ← HTML 변환된 결과 넣기
     wrap.appendChild(div);
     wrap.scrollTop = wrap.scrollHeight;
 }
 
-// 비로그인 첫 화면(3개 버튼)
+// AI 답변 보기 좋게 정리 → HTML 변환 (**, •/-, 1. 지원)
+function toHtml(s) {
+    if (!s) return '';
+    // 1) 안전하게 이스케이프
+    let t = String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/\r/g, '');
+
+    // 2) **bold** → <b>bold</b>
+    t = t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+    // 3) 문장 끝나면 줄바꿈(간단 규칙)
+    t = t.replace(/(다\.|요\.|함\.)(\s+)/g, '$1\n');
+
+    // 4) 불릿 패턴 (*, -, •)을 통일
+    t = t.replace(/^\s*([*\-•])\s+/gm, '• ');
+
+    // 5) 라인 단위 파싱(불릿/번호목록 → <ul><li>)
+    const lines = t.split('\n');
+    let html = '';
+    let inList = false;
+
+    for (const line of lines) {
+        const L = line.trim();
+
+        if (L === '') {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += '<br>';
+            continue;
+        }
+
+        // • 불릿
+        if (/^•\s+/.test(L)) {
+            if (!inList) { html += '<ul>'; inList = true; }
+            html += '<li>' + L.replace(/^•\s+/, '') + '</li>';
+            continue;
+        }
+
+        // 1. 번호목록
+        if (/^\d+\.\s+/.test(L)) {
+            if (!inList) { html += '<ul>'; inList = true; }
+            html += '<li>' + L + '</li>';
+            continue;
+        }
+
+        // 일반 문단
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<p>' + L + '</p>';
+    }
+    if (inList) html += '</ul>';
+
+    return html;
+}
+
+// 비로그인 첫 화면(일단 임시 3개 버튼)
 function renderGuestMenu() {
     const content = document.getElementById('chat-content');
     if (!content) return;
@@ -71,13 +127,10 @@ function openChat(e) {
 
     modal.classList.remove('hidden');
     overlay.classList.remove('hidden');
-    inputArea.classList.add('hidden'); // 기본은 숨김 (회원일 때만 보임)
+    inputArea.classList.add('hidden');
 
     if (CHAT_STATE.loggedIn) renderMemberChat();
     else renderGuestMenu();
-
-    // 디버깅 로그(필요시)
-    // console.log('[chat] openChat called, loggedIn=', CHAT_STATE.loggedIn);
 }
 
 function closeChat(e) {
@@ -96,9 +149,84 @@ function closeChat(e) {
     content.innerHTML = '';
 }
 
+let isSending = false;
+
+// 공통 전송 함수
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const inputArea = document.getElementById('chat-input-area');
+    if (!input || !inputArea || inputArea.classList.contains('hidden')) return;
+
+    const text = input.value.trim();
+    if (!text || isSending) return;
+
+    isSending = true;
+
+    pushBubble(text, 'me');
+    input.value = '';
+
+    const finalQuestion = text;
+
+    const loadingId = '__chat_loading_' + Date.now();
+    (function () {
+        const wrap = document.getElementById('chat-content');
+        if (!wrap) return;
+        const d = document.createElement('div');
+        d.className = 'chat-bubble bot';
+        d.id = loadingId;
+        d.textContent = '답변 생성 중...';
+        wrap.appendChild(d);
+        wrap.scrollTop = wrap.scrollHeight;
+    })();
+
+    try {
+        const res = await fetch('/api/ai/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ q: finalQuestion })
+        });
+
+        const ld = document.getElementById(loadingId);
+        if (ld) ld.remove();
+
+        if (res.status === 401 || res.status === 403) {
+            pushBubble('로그인이 필요합니다. 로그인 후 다시 시도해주세요.', 'bot');
+            inputArea.classList.add('hidden');
+            renderGuestMenu();
+            return;
+        }
+
+        if (!res.ok) {
+            const t = await res.text().catch(()=>'');
+            pushBubble(`오류가 발생했어요. (${res.status}) ${t || ''}`.trim(), 'bot');
+            return;
+        }
+
+        const ct = res.headers.get('Content-Type') || '';
+        let answerText = '';
+        if (ct.includes('application/json')) {
+            const data = await res.json();
+            answerText = (data && (data.answer || data.message || data.result)) ? String(data.answer || data.message || data.result) : '';
+        } else {
+            answerText = await res.text();
+        }
+
+        pushBubble(answerText || '응답이 비어있어요.', 'bot');
+
+    } catch (err) {
+        const ld2 = document.getElementById(loadingId);
+        if (ld2) ld2.remove();
+        pushBubble('네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.', 'bot');
+    } finally {
+        isSending = false;
+    }
+}
+
+let isComposing = false;
+
 // 초기 바인딩
 document.addEventListener('DOMContentLoaded', () => {
-    // 로그인 상태 조회 (실패해도 비로그인으로 처리)
     fetch('/user/auth/status', { credentials: 'include' })
         .then(r => (r.ok ? r.json() : { loggedIn: false }))
         .then(d => { CHAT_STATE.loggedIn = !!d.loggedIn; })
@@ -108,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('chat-close-btn');
     const overlay = document.getElementById('chat-modal-overlay');
     const sendBtn = document.getElementById('chat-send-btn');
+    const input = document.getElementById('chat-input');
 
     if (fab) fab.addEventListener('click', openChat);
     if (closeBtn) closeBtn.addEventListener('click', closeChat);
@@ -116,24 +245,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sendBtn) sendBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const input = document.getElementById('chat-input');
-        if (!input) return;
-        const text = input.value.trim();
-        if (!text) return;
-        pushBubble(text, 'me');
-        // TODO: 실제 API 연동
-        input.value = '';
+        sendMessage();
     });
+
+    if (input) {
+        input.addEventListener('compositionstart', () => { isComposing = true; });
+        input.addEventListener('compositionend',   () => { isComposing = false; });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (e.shiftKey) return;
+                if (isComposing) return;
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
 });
 
-// 인라인 onclick이 호출하는 보루 핸들러
 window.__openChat = function(e){
     try { if (e) e.preventDefault(); } catch(_){}
     openChat(e);
     return false;
 };
 
-// 캡처 단계 위임(다른 스크립트가 버블링에서 막아도 동작)
 document.addEventListener('click', (e) => {
     if (e.target && e.target.id === 'chat-fab') {
         e.preventDefault();
