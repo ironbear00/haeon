@@ -25,26 +25,20 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot starters
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-web'   // RestClient 포함됨
-
-    // Thymeleaf security extras
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.31.0'
+    implementation 'io.github.bonigarcia:webdrivermanager:5.9.0'
 
-    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-
-    // Devtools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-
-    // DB driver
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-    // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

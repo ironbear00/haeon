@@ -25,7 +25,7 @@ public class SnsRequest extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User requester;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "deceased_id", nullable = false)
     private Deceased deceased;
 
