@@ -33,52 +33,40 @@ public class UserController {
 
     private final UserService userService;
 
-    /** 회원가입 */
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest req) {
         UserResponse res = userService.signup(req);
         return ResponseEntity.status(201).body(res);
     }
 
-    /** 로그인 (SecurityContext + 세션 저장) */
     @PostMapping("/login")
     public ResponseEntity<UserResponse> login(@RequestBody LoginRequest req,
                                               HttpServletRequest request,
                                               HttpServletResponse response) {
-        // 1) 사용자 인증 (아이디/비번 검증)
         User user = userService.authenticate(req);
 
-        // 2) 권한 부여
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
-        // 3) principal 생성 (username은 템플릿에서 #authentication.name 으로 사용 가능)
         UserDetails principal = org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password("")   // 이미 검증 완료 → 빈 문자열
                 .authorities(authorities)
                 .build();
 
-        // 4) Authentication 생성 후 SecurityContext에 저장
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(principal, null, authorities);
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
 
-        // 5) 세션에 SecurityContext 보존 (다음 요청에서도 로그인 유지)
         new HttpSessionSecurityContextRepository().saveContext(context, request, response);
 
-        // (선택) 사용자 id도 세션에 저장
         request.getSession(true).setAttribute(SESSION_USER_ID, user.getId());
         request.getSession(true).setAttribute("LOGIN_USER_NAME", user.getName());
 
-        // 6) 응답
         return ResponseEntity.ok(toResponse(user));
     }
 
-    /** 로그인 상태 확인 (개발 편의용)
-     *  GET /user/auth/status → { loggedIn: true/false, userId: 123 or null }
-     */
     @GetMapping("/auth/status")
     public ResponseEntity<Map<String, Object>> authStatus(HttpSession session) {
         Map<String, Object> res = new HashMap<>();
@@ -89,7 +77,6 @@ public class UserController {
         return ResponseEntity.ok(res);
     }
 
-    /** 내 정보 조회 */
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -102,7 +89,6 @@ public class UserController {
         return ResponseEntity.ok(me);
     }
 
-    /** User → DTO 변환 */
     private static UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(),

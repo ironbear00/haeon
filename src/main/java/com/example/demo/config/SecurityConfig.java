@@ -54,15 +54,16 @@ public class SecurityConfig {
                                 "/requests_dashboard"
                         )
                 )
-                .formLogin(form -> form
-                        .loginPage("/user/login")          // 커스텀 로그인 페이지
-                        .loginProcessingUrl("/user/login") // 로그인 처리 URL
-                        .defaultSuccessUrl("/main", true)  // 성공 후 이동
-                        .permitAll()
-                )
+                .formLogin(f -> f.disable())
 
                 .httpBasic(b -> b.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> res.sendRedirect("/user/login"))
+                        .accessDeniedHandler((req, res, e) -> res.sendRedirect("/user/login"))
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
@@ -78,7 +79,8 @@ public class SecurityConfig {
                                 "/uploads/**",
                                 "/files/**",
                                 "/about",
-                                "/process"
+                                "/process",
+                                "/user/login"
                         ).permitAll()
                         .requestMatchers(
                                 "/user/login","/user/signup","/user/me",
