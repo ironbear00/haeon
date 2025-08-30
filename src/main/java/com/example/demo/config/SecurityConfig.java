@@ -46,6 +46,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/user/login", // CSRF 보호 무시 경로 추가
+                                "/user/signup",
                                 "/memorial/comment/**", // 댓글 등록
                                 "/memorial/write", // 추모글 작성
                                 "/api/ai/ask",
