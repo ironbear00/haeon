@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 "/user/login",
                                 "/memorial/comment/**",
                                 "/memorial/write",
+                                "/api/ai/ask",
                                 "/requests/apply"
                         )
                 )
@@ -79,7 +80,9 @@ public class SecurityConfig {
                                 "/memorial/",
                                 "/memorial/detail/**",
                                 "/memorial/password_check/**",
-                                "/memorial/comment/**"
+                                "/memorial/comment/**",
+                                "/user/auth/status",
+                                "/api/ai/ask"
                         ).permitAll()
                         .requestMatchers(
                                 "/memorial/memorial_write",
