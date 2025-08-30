@@ -12,7 +12,6 @@ import com.example.demo.dto.requests.SnsRequestDTO;
 import com.example.demo.dto.requests.SnsRequestSummaryDTO;
 import com.example.demo.repository.DeceasedRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.requests.RequestFileRepository;
 import com.example.demo.repository.requests.SnsRequestRepository;
 import com.example.demo.repository.utils.FileTypeRepository;
 import com.example.demo.repository.utils.SnsPlatformRepository;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class SnsRequestService {
     private final SnsRequestRepository snsRequestRepository;
-    private final RequestFileRepository requestFileRepository;
     private final UserRepository userRepository;
     private final FileTypeRepository fileTypeRepository;
     private final SnsPlatformRepository snsPlatformRepository;
@@ -45,11 +43,13 @@ public class SnsRequestService {
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        List<Deceased> deceasedList = deceasedRepository.findByManagerUser_Id(requester.getId());
-        if (deceasedList.isEmpty()) {
-            throw new IllegalStateException("관리하는 고인 정보가 등록되어 있지 않습니다. 먼저 고인 정보를 등록해주세요.");
+        Long selectedDeceasedId = dto.getDeceasedId();
+        if (selectedDeceasedId == null) {
+            throw new IllegalArgumentException("요청할 고인 ID가 없습니다.");
         }
-        Deceased deceased = deceasedList.get(0);
+
+        Deceased deceased = deceasedRepository.findByIdAndManagerUserId(selectedDeceasedId, requester.getId())
+                .orElseThrow(() -> new IllegalArgumentException("요청한 고인 정보를 찾을 수 없거나 접근 권한이 없습니다."));
 
         String relationCertPath = fileStore.storeFile(dto.getRelationCertification());
         String deathCertPath = fileStore.storeFile(dto.getDeathCertificate());
@@ -75,7 +75,6 @@ public class SnsRequestService {
             snsRequest.addFile(createRequestFile(deathCertPath, deathType));
             snsRequest.addFile(createRequestFile(applicantIdPath, applicantIdType));
 
-            snsRequestRepository.save(snsRequest);
             SnsRequest savedRequest = snsRequestRepository.save(snsRequest);
             requestProcessingService.processSnsRequest(savedRequest.getId());
         }
@@ -92,27 +91,7 @@ public class SnsRequestService {
     public List<SnsRequestSummaryDTO> findMyRequests(Long userId) {
         return snsRequestRepository.findByRequester_IdOrderByCreateAtDesc(userId)
                 .stream()
-                .map(SnsRequestSummaryDTO::new) // SnsRequest -> SnsRequestSummaryDto 변환
+                .map(SnsRequestSummaryDTO::new)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public DeceasedResponse createDeceased(Long userId, DeceasedRequest req) {
-        User managerUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
-
-        Deceased deceased = Deceased.builder()
-                .name(req.getName())
-                .birthDate(req.getBirthDate())
-                .deathDate(req.getDeathDate())
-                .funeralDate(req.getFuneralDate())
-                .phone(req.getPhone())
-                .gender(req.getGender())
-                .managerUser(managerUser)
-                .build();
-
-        Deceased savedDeceased = deceasedRepository.save(deceased);
-
-        return DeceasedResponse.fromEntity(savedDeceased);
     }
 }

@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function() {
     let requestContent = "";
     let selectedPlatforms = [];
 
+    let deceasedId = null;
+
     const startBtn = document.getElementById('startBtn');
     const optionalDocNextBtn = document.getElementById('optionalDocNextBtn');
     const platformNextBtn = document.getElementById('platformNextBtn');
@@ -20,17 +22,15 @@ document.addEventListener("DOMContentLoaded", function() {
         const urlParams = new URLSearchParams(window.location.search);
         const step = urlParams.get('step');
 
+        deceasedId = urlParams.get('targetId');
 
-        if (step === 'upload') {
+        if (step === 'upload' && deceasedId) {
             goToStep(4);
             return;
         }
 
-
         showStep(0);
     }
-
-
 
     function showStep(stepIndex) {
         steps.forEach((step, index) => {
@@ -170,14 +170,25 @@ document.addEventListener("DOMContentLoaded", function() {
         optionalFiles.forEach(file => formData.append('otherFiles', file));
         formData.append('reason', requestContent);
 
+        if (!deceasedId) {
+            alert('고인 정보가 올바르지 않습니다. 처음부터 다시 시도해주세요.');
+            window.location.href = '/deceased';
+            return;
+        }
+        formData.append('deceasedId', deceasedId);
+
         nextStep();
         const loadingText = document.getElementById('loading-text');
 
         try {
             const response = await fetch('/requests/apply', { method: 'POST', body: formData, credentials: 'include' });
-            if (!response.ok) throw new Error('Server error');
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error('Server error: ' + errorText);
+            }
         } catch (error) {
-            alert('제출에 실패했습니다.');
+            console.error('Submission failed:', error);
+            alert('제출에 실패했습니다. 서버 로그를 확인해주세요.');
             goToStep(8);
             return;
         }
@@ -191,7 +202,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     resetBtn.addEventListener('click', () => window.location.reload());
-
 
     initializeStep();
 });

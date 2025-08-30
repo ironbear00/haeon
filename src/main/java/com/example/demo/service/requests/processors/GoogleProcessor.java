@@ -3,7 +3,9 @@ package com.example.demo.service.requests.processors;
 import com.example.demo.domain.requests.RequestFile;
 import com.example.demo.domain.requests.SnsRequest;
 import com.example.demo.domain.utils.SnsPlatform;
+import com.example.demo.dto.DeceasedResponse;
 import com.example.demo.repository.requests.SnsRequestRepository;
+import com.example.demo.service.DeceasedService;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 public class GoogleProcessor implements SnsPlatformProcessor {
 
     private final SnsRequestRepository snsRequestRepository;
+    private final DeceasedService deceasedService;
     private static final String GOOGLE_FORM_URL = "https://support.google.com/accounts/troubleshooter/6357590?hl=ko";
 
     @Override
@@ -47,7 +50,7 @@ public class GoogleProcessor implements SnsPlatformProcessor {
         ChromeOptions options = new ChromeOptions();
         // options.addArguments("--headless"); // 서버 환경에서는 화면 없이 실행
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // 최대 10초 대기
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
         try {
             driver.get(GOOGLE_FORM_URL);
@@ -71,7 +74,13 @@ public class GoogleProcessor implements SnsPlatformProcessor {
                     By.cssSelector("[id$='--name_deceased']")
             ));
             log.info("[Google] 이름 입력 칸 로딩 확인.");
-            String deceasedName = request.getDeceased().getName();
+            Long deceasedId = request.getDeceased().getId();
+            DeceasedResponse deceased = deceasedService.getDeceasedById(deceasedId);
+            String deceasedName = deceased.getName();
+
+            log.info("[Google] DB에서 가져온 Deceased 객체: {}", deceased);
+            log.info("[Google] DB에서 가져온 고인 이름: {}", deceasedName);
+
             Actions actions = new Actions(driver);
             actions.moveToElement(deceasedFullName).click().sendKeys(deceasedName).perform();
 
@@ -208,8 +217,7 @@ public class GoogleProcessor implements SnsPlatformProcessor {
 //            driver.quit();
         }
     }
-
-    // 요청에 포함된 파일 중 특정 타입의 파일을 찾는 헬퍼 메서드
+    
     private RequestFile findFileByType(SnsRequest request, String fileTypeCode) {
         return request.getFiles().stream()
                 .filter(file -> fileTypeCode.equals(file.getFileType().getCode()))

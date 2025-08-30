@@ -9,6 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class SnsRequestDTO {
+    private Long deceasedId;
     private List<String> platforms;
     private MultipartFile relationCertification;
     private MultipartFile deathCertificate;

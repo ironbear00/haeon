@@ -20,9 +20,6 @@ public class DeceasedService {
     private final DeceasedRepository deceasedRepository;
     private final UserRepository userRepository;
 
-    /* =========================
-       생성
-       ========================= */
     public DeceasedResponse createDeceased(Long ownerUserId, DeceasedRequest req) {
         User owner = userRepository.findById(ownerUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
@@ -41,9 +38,6 @@ public class DeceasedService {
         return toResponse(saved);
     }
 
-    /* =========================
-       목록 (내 소유만)
-       ========================= */
     @Transactional(readOnly = true)
     public List<DeceasedResponse> getDeceasedList(Long ownerUserId) {
         return deceasedRepository.findByManagerUser_Id(ownerUserId)
@@ -52,24 +46,17 @@ public class DeceasedService {
                 .toList();
     }
 
-    /** 컨트롤러에서 셀렉트박스 등에 엔티티로 필요할 때 사용 (내 소유만 반환) */
     @Transactional(readOnly = true)
     public List<Deceased> findMyDeceasedList(Long ownerUserId) {
         return deceasedRepository.findByManagerUser_Id(ownerUserId);
     }
 
-    /* =========================
-       단건 조회 (내 소유 검증)
-       ========================= */
     @Transactional(readOnly = true)
     public DeceasedResponse getDeceasedByIdForOwner(Long deceasedId, Long ownerUserId) {
         Deceased d = getOwnedEntity(deceasedId, ownerUserId);
         return toResponse(d);
     }
 
-    /* =========================
-       수정 (내 소유 검증)
-       ========================= */
     public DeceasedResponse updateDeceasedForOwner(Long deceasedId, Long ownerUserId, DeceasedRequest req) {
         Deceased deceased = getOwnedEntity(deceasedId, ownerUserId);
 
@@ -80,21 +67,14 @@ public class DeceasedService {
         deceased.setDeathDate(req.getDeathDate());
         deceased.setFuneralDate(req.getFuneralDate());
 
-        // JPA 변경감지로 flush 시 업데이트됨
         return toResponse(deceased);
     }
 
-    /* =========================
-       삭제 (내 소유 검증)
-       ========================= */
     public void deleteDeceasedForOwner(Long deceasedId, Long ownerUserId) {
         Deceased deceased = getOwnedEntity(deceasedId, ownerUserId);
         deceasedRepository.delete(deceased);
     }
 
-    /* =========================
-       공용 도우미
-       ========================= */
     @Transactional(readOnly = true)
     public DeceasedResponse getDeceasedById(Long deceasedId) {
         Deceased d = deceasedRepository.findById(deceasedId)
@@ -102,7 +82,6 @@ public class DeceasedService {
         return toResponse(d);
     }
 
-    /** 소유권 검증 포함 엔티티 조회 */
     @Transactional(readOnly = true)
     protected Deceased getOwnedEntity(Long deceasedId, Long ownerUserId) {
         Deceased d = deceasedRepository.findById(deceasedId)
@@ -114,7 +93,6 @@ public class DeceasedService {
         return d;
     }
 
-    /** 엔티티 -> 응답 DTO 변환 */
     private DeceasedResponse toResponse(Deceased d) {
         return new DeceasedResponse(
                 d.getId(),
